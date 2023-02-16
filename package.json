@@ -1,7 +1,7 @@
 {
 	"name": "obsidian-sample-plugin",
 	"version": "1.0.0",
-	"description": "This is a sample plugin for Obsidian (https://obsidian.md)",
+	"description": "Close Similar Tabs (https://github.com/1C0D/Obsidian-Close-Similar-Tabs)",
 	"main": "main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
