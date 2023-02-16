@@ -1,5 +1,5 @@
 {
-	"name": "obsidian-sample-plugin",
+	"name": "close-similar-tabs",
 	"version": "1.0.0",
 	"description": "Close Similar Tabs (https://github.com/1C0D/Obsidian-Close-Similar-Tabs)",
 	"main": "main.js",
