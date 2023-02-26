@@ -21,6 +21,7 @@ export default class duplicateTabs extends Plugin {
 				leaf.getViewState().state.file === activeLeafPath
 			) {
 				activeLeaf.detach();
+				this.app.workspace.revealLeaf(leaf)
 			}
 		});
 	}
