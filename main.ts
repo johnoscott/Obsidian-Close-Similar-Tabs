@@ -1,4 +1,4 @@
-import { Plugin, WorkspaceLeaf } from "obsidian";
+import { Plugin } from "obsidian";
 
 export default class duplicateTabs extends Plugin {
 	async onload() {
@@ -12,36 +12,16 @@ export default class duplicateTabs extends Plugin {
 	}
 
 	findDuplicates() {
-		const leafStates: { name: string; leaves: WorkspaceLeaf[] }[] = [];
+		const activeLeaf = this.app.workspace.getLeaf();
+		const activeLeafPath = activeLeaf.getViewState().state.file;
 
-		app.workspace.iterateAllLeaves((leaf) => {
-			const mainWindow = leaf.view.containerEl.win == window;
-			const sameWindow = leaf.view.containerEl.win == activeWindow;
-			const rootSplit = leaf.getRoot() == this.app.workspace.rootSplit
-			//Ignore sidebar panes in the main window, because non-main window don't have a sidebar
-			const correctPane = mainWindow ? (sameWindow && rootSplit) : sameWindow;			
-			const leafState = leaf.getViewState();
-			const name = leafState.state.file;
-
+		app.workspace.iterateRootLeaves((leaf) => {
 			if (
-				correctPane
+				leaf !== activeLeaf &&
+				leaf.getViewState().state.file === activeLeafPath
 			) {
-				const existingLeaf = leafStates.find(
-					(existingLeaf) => existingLeaf.name === name
-				);
-				if (existingLeaf && name) {
-					existingLeaf.leaves.push(leaf);
-				} else {
-					leafStates.push({ name, leaves: [leaf] });
-				}
+				activeLeaf.detach();
 			}
 		});
-
-		for (const obj of leafStates) {
-			if (obj.leaves.length > 1) {
-				obj.leaves[obj.leaves.length - 1].detach();
-				this.app.workspace.revealLeaf(obj.leaves[0]);
-			}
-		}
 	}
 }
