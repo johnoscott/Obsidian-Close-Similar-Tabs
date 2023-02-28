@@ -2,7 +2,7 @@ import { Plugin, View } from "obsidian";
 import { DuplicateTabsSettingsTab } from "src/settings";
 
 interface TabCessionsSettings {
-	byWindow: "current" | "all",
+	byWindow: "current" | "all";
 }
 
 const DEFAULT_SETTINGS: TabCessionsSettings = {
@@ -36,13 +36,15 @@ export default class DuplicateTabs extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	// activeLeaf is the last leaf created 
-	// and then removed when a duplicate is found 
+	// activeLeaf is the last leaf created
+	// and then removed when a duplicate is found
 	findDuplicates() {
 		const byWindow = this.settings.byWindow;
 		// on what window active is
 		const activeView = this.app.workspace.getActiveViewOfType(View);
 		const isMainWindowActive = activeView?.containerEl.win == window;
+		const rootSplitActive =
+			activeView?.leaf.getRoot() == this.app.workspace.rootSplit;
 
 		// get active relative path (folder?/name)
 		const activeLeaf = this.app.workspace.activeLeaf;
@@ -58,12 +60,13 @@ export default class DuplicateTabs extends Plugin {
 			const correctPane =
 				(isMainWindowDupli && rootSplitDupli) || !isMainWindowDupli;
 
-			if (leafPath && correctPane) {
-				if (byWindow=== 'all') {
-					if (
-						leaf !== activeLeaf &&
-						leafPath === activeLeafPath
-					) {
+			if (
+				!(isMainWindowActive && !rootSplitActive) &&
+				leafPath &&
+				correctPane
+			) {
+				if (byWindow === "all") {
+					if (leaf !== activeLeaf && leafPath === activeLeafPath) {
 						activeLeaf?.detach();
 						this.app.workspace.revealLeaf(leaf);
 					}
@@ -86,4 +89,3 @@ export default class DuplicateTabs extends Plugin {
 		});
 	}
 }
-
