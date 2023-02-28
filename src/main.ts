@@ -2,11 +2,11 @@ import { Plugin, View } from "obsidian";
 import { DuplicateTabsSettingsTab } from "src/settings";
 
 interface TabCessionsSettings {
-	byWindow: boolean;
+	byWindow: "current" | "all",
 }
 
 const DEFAULT_SETTINGS: TabCessionsSettings = {
-	byWindow: true,
+	byWindow: "current",
 };
 
 export default class DuplicateTabs extends Plugin {
@@ -59,10 +59,10 @@ export default class DuplicateTabs extends Plugin {
 				(isMainWindowDupli && rootSplitDupli) || !isMainWindowDupli;
 
 			if (leafPath && correctPane) {
-				if (!byWindow) {
+				if (byWindow=== 'all') {
 					if (
 						leaf !== activeLeaf &&
-						leaf.getViewState().state.file === activeLeafPath
+						leafPath === activeLeafPath
 					) {
 						activeLeaf?.detach();
 						this.app.workspace.revealLeaf(leaf);

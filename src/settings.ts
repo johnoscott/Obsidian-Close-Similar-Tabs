@@ -1,7 +1,6 @@
 import { App, PluginSettingTab, Setting } from "obsidian";
 import DuplicateTabs from "src/main";
 
-
 export class DuplicateTabsSettingsTab extends PluginSettingTab {
 	plugin: DuplicateTabs;
 
@@ -27,16 +26,18 @@ export class DuplicateTabsSettingsTab extends PluginSettingTab {
 		linkContainer.appendChild(linkText);
 
 		new Setting(containerEl)
-			.setName(
-				"Close by window"
+			.setName("Close by window")
+			.setDesc(
+				"Select whether the plugin will only close similar tabs within the same window, or throughout all open windows."
 			)
-			.setDesc("If turned ON, the plugin will only close similar tabs within the same window. If turned OFF, the plugin will check for duplicates throughout all open windows.")
-			.addToggle((toggle) => {
-				toggle
-					// Create a toggle for the setting
+			.addDropdown((dropdown) => {
+				dropdown
+					.addOptions({
+						current: "Current window only",
+						all: "All windows",
+					})
 					.setValue(this.plugin.settings.byWindow)
-					.onChange((value) => {
-						// Update the plugin setting when the toggle is changed
+					.onChange(async (value: "all" | "current") => {
 						this.plugin.settings.byWindow = value;
 						this.plugin.saveSettings();
 					});
