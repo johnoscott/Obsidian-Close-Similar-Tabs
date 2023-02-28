@@ -61,7 +61,7 @@ export default class DuplicateTabs extends Plugin {
 				(isMainWindowDupli && rootSplitDupli) || !isMainWindowDupli;
 
 			if (
-				!(isMainWindowActive && !rootSplitActive) &&
+				(!isMainWindowActive || rootSplitActive) &&
 				leafPath &&
 				correctPane
 			) {
@@ -79,7 +79,7 @@ export default class DuplicateTabs extends Plugin {
 					if (
 						correctPane1 &&
 						leaf !== activeLeaf &&
-						leaf.getViewState().state.file === activeLeafPath
+						leafPath === activeLeafPath
 					) {
 						activeLeaf?.detach();
 						this.app.workspace.revealLeaf(leaf);
