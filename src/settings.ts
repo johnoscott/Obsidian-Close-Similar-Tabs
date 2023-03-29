@@ -42,5 +42,36 @@ export class DuplicateTabsSettingsTab extends PluginSettingTab {
 						this.plugin.saveSettings();
 					});
 			});
+		new Setting(containerEl)
+			.setName("No empty tabs")
+			.setDesc("Activates no several empty tabs")
+			.addToggle((toggle) => {
+				toggle
+					// Create a toggle for the setting
+					.setValue(this.plugin.settings.noEmptyTabs)
+					.onChange((value) => {
+						// Update the plugin setting when the toggle is changed
+						this.plugin.settings.noEmptyTabs = value;
+						this.plugin.saveSettings();
+					});
+			});
+
+		new Setting(containerEl)
+			.setName("Toggle Close Similar Tabs")
+			.setDesc("Enable/disable Close Similar Tabs")
+			.addToggle((toggle) => {
+				toggle
+					// Create a toggle for the setting
+					.setValue(this.plugin.settings.toggleCloseSimilarTabs)
+					.onChange((value) => {
+						// Update the plugin setting when the toggle is changed
+						this.plugin.settings.toggleCloseSimilarTabs = value;
+						this.plugin.saveSettings();
+					});
+			});
+
+		containerEl.createEl("p", {
+			text: 'Check "Close Similar Tabs parameters" in Command palette to directly change these parameters, from the editor',
+		});
 	}
 }

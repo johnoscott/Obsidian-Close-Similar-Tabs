@@ -1,12 +1,12 @@
 {
 	"name": "close-similar-tabs",
-	"version": "1.2.3",
+	"version": "1.2.4",
 	"description": "Avoid to have a file opened several times in your tabs. (+setting: by window or everywhere)",
 	"main": "src/main.js",
 	"scripts": {
 		"dev": "node esbuild.config.mjs",
 		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
-		"version": "node version-bump.mjs && git add manifest.json versions.json"
+		"version": "1.2.4"
 	},
 	"keywords": [],
 	"author": "",
