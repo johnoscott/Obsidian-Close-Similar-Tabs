@@ -64,11 +64,18 @@ export default class DuplicateTabs extends Plugin {
 
 		// get active relative path (folder?/name)
 		const activeLeaf = workspace.activeLeaf;
-		let activeLeafPath = activeLeaf?.getViewState().state.file;
+		const activeLeafPath = activeLeaf?.getViewState().state.file;
+		const activeTitlePart = activeLeafPath?.split('/').pop().split('.')[0];
+		const activetitle = activeView?.getDisplayText()
 
 		workspace.iterateAllLeaves((leaf) => {
+			if (!activeLeafPath || activeTitlePart !== activetitle) return // to allowed open linked view
 			const leafState = leaf.getViewState();
-			let leafPath = leafState.state.file;
+			const leafPath = leafState.state.file;
+			const leafTitle = leaf.getDisplayText()
+			const leafTitlePart = leafPath?.split('/').pop().split('.')[0];
+			if (!leafPath || leafTitlePart !== leafTitle) return // to allowed open linked view
+
 			const isMainWindowDupli = leaf.view.containerEl.win == window;
 			const isSameWindowDupli = leaf.view.containerEl.win == activeWindow;
 			const rootSplitDupli =
