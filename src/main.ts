@@ -56,7 +56,7 @@ export default class DuplicateTabs extends Plugin {
 		const byWindow = this.settings.byWindow;
 		const noEmptyTabs = this.settings.noEmptyTabs;
 		// on what window active is
-		const{workspace}= this.app;
+		const { workspace } = this.app;
 		const activeView = workspace.getActiveViewOfType(View);
 		const isMainWindowActive = activeView?.containerEl.win == window;
 		const rootSplitActive =
@@ -65,21 +65,29 @@ export default class DuplicateTabs extends Plugin {
 		// get active relative path (folder?/name)
 		const activeLeaf = workspace.activeLeaf;
 		const activeLeafPath = activeLeaf?.getViewState().state.file;
-		const activeTitlePart = activeLeafPath?.split('/').pop().split('.')[0];
-		const activetitle = activeView?.getDisplayText()
+		const activeTitlePart = activeLeafPath?.split("/").pop().split(".")[0];
+		const activetitle = activeView?.getDisplayText();
+
+		if (
+			activeView?.getDisplayText() !== "New tab" &&
+			(!activeLeafPath || activeTitlePart !== activetitle)
+		)
+			return; // to allowed open linked view
 
 		workspace.iterateAllLeaves((leaf) => {
-			if (!activeLeafPath || activeTitlePart !== activetitle) return // to allowed open linked view
 			const leafState = leaf.getViewState();
 			const leafPath = leafState.state.file;
-			const leafTitle = leaf.getDisplayText()
-			const leafTitlePart = leafPath?.split('/').pop().split('.')[0];
-			if (!leafPath || leafTitlePart !== leafTitle) return // to allowed open linked view
+			const leafTitle = leaf.getDisplayText();
+			const leafTitlePart = leafPath?.split("/").pop().split(".")[0];
+			if (
+				activeView?.getDisplayText() !== "New tab" &&
+				(!leafPath || leafTitlePart !== leafTitle)
+			)
+				return; // to allowed open linked view
 
 			const isMainWindowDupli = leaf.view.containerEl.win == window;
 			const isSameWindowDupli = leaf.view.containerEl.win == activeWindow;
-			const rootSplitDupli =
-				leaf.getRoot() == workspace.rootSplit;
+			const rootSplitDupli = leaf.getRoot() == workspace.rootSplit;
 			const correctPane =
 				(isMainWindowDupli && rootSplitDupli) || !isMainWindowDupli;
 
@@ -104,11 +112,12 @@ export default class DuplicateTabs extends Plugin {
 						workspace.revealLeaf(leaf);
 					}
 				}
-			} else if ( // empty tabs
+			} else if (
+				// empty tabs
 				noEmptyTabs &&
 				leaf !== activeLeaf &&
-				!activeLeafPath &&
-				!leafPath &&
+				leaf.view.getDisplayText() === "New tab" &&
+				activeView?.getDisplayText() === "New tab" &&
 				(!isMainWindowActive || rootSplitActive) &&
 				correctPane
 			) {
