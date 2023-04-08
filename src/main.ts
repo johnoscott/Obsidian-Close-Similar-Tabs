@@ -1,4 +1,4 @@
-import { Plugin, View } from "obsidian";
+import { Plugin } from "obsidian";
 import { DuplicateTabsSettingsTab } from "src/settings";
 import { DuplicateTabsModal } from "./modal";
 
@@ -57,16 +57,16 @@ export default class DuplicateTabs extends Plugin {
 		const noEmptyTabs = this.settings.noEmptyTabs;
 		// on what window active is
 		const { workspace } = this.app;
-		const activeView = workspace.getActiveViewOfType(View);
+		const activeLeaf = (workspace as any).activeLeaf;
+		const activeView = activeLeaf.view;
 		const isMainWindowActive = activeView?.containerEl.win == window;
-		const rootSplitActive =
-			activeView?.leaf.getRoot() == workspace.rootSplit;
+		const rootSplitActive = activeLeaf.getRoot() == workspace.rootSplit;
 
 		// get active relative path (folder?/name)
-		const activeLeaf = workspace.activeLeaf;
 		const activeLeafPath = activeLeaf?.getViewState().state.file;
 		const activeTitlePart = activeLeafPath?.split("/").pop().split(".")[0];
 		const activetitle = activeView?.getDisplayText();
+		const activeEl = (activeLeaf as any).parent.containerEl;
 
 		if (
 			activeView?.getDisplayText() !== "New tab" &&
@@ -75,6 +75,8 @@ export default class DuplicateTabs extends Plugin {
 			return; // to allowed open linked view
 
 		workspace.iterateAllLeaves((leaf) => {
+			const leafEl = (leaf as any).parent.containerEl;
+			if (activeEl !== leafEl) return;
 			const leafState = leaf.getViewState();
 			const leafPath = leafState.state.file;
 			const leafTitle = leaf.getDisplayText();
