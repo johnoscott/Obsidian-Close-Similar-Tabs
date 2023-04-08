@@ -14,4 +14,6 @@ But these settings can be directly accessed from the Command palette with the co
 So you can temporarly turn off Close Similar Tabs
 or quickly change any parameter. 
 
+![New demo](CST.gif)
+
 ![demo](demo.gif)
