@@ -57,6 +57,17 @@ export class DuplicateTabsModal extends Modal {
 						this.plugin.saveSettings();
 					});
 			});
+		new Setting(contentEl)
+			.setName("Be Notified")
+			.setDesc("open a notification pop up when a similar tab already exists")
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.beNotified)
+					.onChange((value) => {
+						this.plugin.settings.beNotified = value;
+						this.plugin.saveSettings();
+					});
+			});	
 	}
 
 	onClose() {

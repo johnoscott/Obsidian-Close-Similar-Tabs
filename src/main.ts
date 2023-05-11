@@ -1,4 +1,4 @@
-import { Plugin } from "obsidian";
+import { Notice, Plugin, Workspace, WorkspaceLeaf } from "obsidian";
 import { DuplicateTabsSettingsTab } from "src/settings";
 import { DuplicateTabsModal } from "./modal";
 
@@ -6,12 +6,14 @@ interface TabCessionsSettings {
 	byWindow: "current" | "all";
 	noEmptyTabs: boolean;
 	toggleCloseSimilarTabs: boolean;
+	beNotified: boolean;
 }
 
 const DEFAULT_SETTINGS: TabCessionsSettings = {
 	byWindow: "current",
 	noEmptyTabs: true,
 	toggleCloseSimilarTabs: true,
+	beNotified: true,
 };
 
 export default class DuplicateTabs extends Plugin {
@@ -50,8 +52,7 @@ export default class DuplicateTabs extends Plugin {
 		await this.saveData(this.settings);
 	}
 
-	// activeLeaf is the last leaf created
-	// and then removed when a duplicate is found
+	// activeLeaf = last leaf created, removed when it's a duplicate
 	findDuplicates() {
 		const byWindow = this.settings.byWindow;
 		const noEmptyTabs = this.settings.noEmptyTabs;
@@ -101,8 +102,7 @@ export default class DuplicateTabs extends Plugin {
 				correctPane
 			) {
 				if (byWindow === "all") {
-					activeLeaf?.detach();
-					workspace.revealLeaf(leaf);
+					this.closeDuplicate(activeLeaf, workspace, leaf, leafPath)
 				} else {
 					const correctPane1 =
 						(isMainWindowDupli && isMainWindowActive) ||
@@ -110,8 +110,7 @@ export default class DuplicateTabs extends Plugin {
 							!isMainWindowDupli &&
 							isSameWindowDupli);
 					if (correctPane1) {
-						activeLeaf?.detach();
-						workspace.revealLeaf(leaf);
+						this.closeDuplicate(activeLeaf, workspace, leaf, leafPath)
 					}
 				}
 			} else if (
@@ -139,5 +138,13 @@ export default class DuplicateTabs extends Plugin {
 				}
 			}
 		});
+	}
+
+	closeDuplicate(activeLeaf: WorkspaceLeaf, workspace: Workspace, leaf: WorkspaceLeaf, leafPath: string) {
+		activeLeaf?.detach();
+		workspace.revealLeaf(leaf);
+		if (this.settings.beNotified) {
+			new Notice(`"${leafPath}" already opened`);
+		}
 	}
 }
