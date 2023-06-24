@@ -1,8 +1,9 @@
 import { Notice, Plugin, Workspace, WorkspaceLeaf } from "obsidian";
 import { DuplicateTabsSettingsTab } from "src/settings";
-import { DuplicateTabsModal } from "./modal";
+import { CSTNewVersion, DuplicateTabsModal } from "./modal";
 
 interface TabCessionsSettings {
+	savedVersion: string;
 	byWindow: "current" | "all";
 	noEmptyTabs: boolean;
 	toggleCloseSimilarTabs: boolean;
@@ -10,6 +11,7 @@ interface TabCessionsSettings {
 }
 
 const DEFAULT_SETTINGS: TabCessionsSettings = {
+	savedVersion: "0.0.0",
 	byWindow: "current",
 	noEmptyTabs: true,
 	toggleCloseSimilarTabs: true,
@@ -22,13 +24,25 @@ export default class DuplicateTabs extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new DuplicateTabsSettingsTab(this.app, this));
+		if (
+			this.settings.savedVersion !== "0.0.0" && // if never installed false
+			this.settings.savedVersion !== this.manifest.version // if reinstall false
+		) {
+			new CSTNewVersion(this.app, this).open();
+		} else {
+			this.settings.savedVersion = this.manifest.version;
+		}
+		await this.saveSettings();
 
 		this.app.workspace.onLayoutReady(() => {
 			this.registerEvent(
-				this.app.workspace.on("active-leaf-change", () => {
-					if (this.settings.toggleCloseSimilarTabs)
-						this.findDuplicates();
-				})
+				this.app.workspace.on(
+					"active-leaf-change",
+					(leaf: WorkspaceLeaf) => {
+						if (this.settings.toggleCloseSimilarTabs)
+							this.findDuplicates(leaf);
+					}
+				)
 			);
 		});
 
@@ -37,6 +51,19 @@ export default class DuplicateTabs extends Plugin {
 			name: "Close similar tabs parameters",
 			callback: () => {
 				new DuplicateTabsModal(this.app, this).open();
+			},
+		});
+		this.addCommand({
+			id: "CST-quick-switch",
+			name: "Quick switch",
+			callback: async () => {
+				this.settings.toggleCloseSimilarTabs =
+					!this.settings.toggleCloseSimilarTabs;
+				const message = this.settings.toggleCloseSimilarTabs
+					? "Close similar tabs ON"
+					: "Close similar tabs OFF";
+				new Notice(`${message}`);
+				await this.saveSettings();
 			},
 		});
 	}
@@ -53,56 +80,50 @@ export default class DuplicateTabs extends Plugin {
 	}
 
 	// activeLeaf = last leaf created, removed when it's a duplicate
-	findDuplicates() {
+	private findDuplicates = (activeLeaf: WorkspaceLeaf) => {
 		const byWindow = this.settings.byWindow;
 		const noEmptyTabs = this.settings.noEmptyTabs;
 		// on what window active is
-		const { workspace } = this.app;
-		const activeLeaf = (workspace as any).activeLeaf;
 		const activeView = activeLeaf.view;
 		const isMainWindowActive = activeView?.containerEl.win == window;
+		const { workspace } = this.app;
 		const rootSplitActive = activeLeaf.getRoot() == workspace.rootSplit;
 
 		// get active relative path (folder?/name)
 		const activeLeafPath = activeLeaf?.getViewState().state.file;
-		const activeTitlePart = activeLeafPath?.split("/").pop().split(".")[0];
-		const activetitle = activeView?.getDisplayText();
 		const activeEl = (activeLeaf as any).parent.containerEl;
-
-		if (
-			activeView?.getDisplayText() !== "New tab" &&
-			(!activeLeafPath || activeTitlePart !== activetitle)
-		)
-			return; // to allowed open linked view
 
 		workspace.iterateAllLeaves((leaf) => {
 			const leafEl = (leaf as any).parent.containerEl;
-			if (activeEl !== leafEl) return;
-			const leafState = leaf.getViewState();
-			const leafPath = leafState.state.file;
-			const leafTitle = leaf.getDisplayText();
-			const leafTitlePart = leafPath?.split("/").pop().split(".")[0];
-			if (
-				activeView?.getDisplayText() !== "New tab" &&
-				(!leafPath || leafTitlePart !== leafTitle)
-			)
-				return; // to allowed open linked view
-
-			const isMainWindowDupli = leaf.view.containerEl.win == window;
+			const leafPath = leaf.getViewState().state.file;
 			const isSameWindowDupli = leaf.view.containerEl.win == activeWindow;
+			const isMainWindowDupli = leaf.view.containerEl.win == window;
+
+			if (leaf === activeLeaf) return;
+
+			// to allowed open linked view
+			if (isSameWindowDupli && activeEl !== leafEl) {
+				return;
+			}
+
 			const rootSplitDupli = leaf.getRoot() == workspace.rootSplit;
 			const correctPane =
 				(isMainWindowDupli && rootSplitDupli) || !isMainWindowDupli;
 
 			if (
-				leaf !== activeLeaf &&
 				leafPath &&
 				leafPath === activeLeafPath &&
 				(!isMainWindowActive || rootSplitActive) &&
 				correctPane
 			) {
-				if (byWindow === "all") {
-					this.closeDuplicate(activeLeaf, workspace, leaf, leafPath)
+				if (!isSameWindowDupli && byWindow === "all") {
+					this.closeDuplicate(
+						activeLeaf,
+						workspace,
+						leaf,
+						leafPath,
+						false
+					);
 				} else {
 					const correctPane1 =
 						(isMainWindowDupli && isMainWindowActive) ||
@@ -110,41 +131,50 @@ export default class DuplicateTabs extends Plugin {
 							!isMainWindowDupli &&
 							isSameWindowDupli);
 					if (correctPane1) {
-						this.closeDuplicate(activeLeaf, workspace, leaf, leafPath)
+						this.closeDuplicate(
+							activeLeaf,
+							workspace,
+							leaf,
+							leafPath,
+							true
+						);
 					}
 				}
 			} else if (
-				// empty tabs
+				// no empty tabs
 				noEmptyTabs &&
-				leaf !== activeLeaf &&
-				leaf.view.getDisplayText() === "New tab" &&
-				activeView?.getDisplayText() === "New tab" &&
+				leaf.view.getViewType() === "empty" && // or leaf.view.getDisplayText() === "New tab"
+				activeView.getViewType() === "empty" &&
 				(!isMainWindowActive || rootSplitActive) &&
 				correctPane
 			) {
-				if (byWindow === "all") {
-					leaf?.detach(); // to keep the new New tab
-					if (activeLeaf) workspace.revealLeaf(activeLeaf);
-				} else {
-					const correctPane1 =
-						(isMainWindowDupli && isMainWindowActive) ||
-						(!isMainWindowActive &&
-							!isMainWindowDupli &&
-							isSameWindowDupli);
-					if (correctPane1) {
-						leaf?.detach();
-						if (activeLeaf) workspace.revealLeaf(activeLeaf);
-					}
-				}
+				leaf?.detach(); // to keep the new New tab
 			}
 		});
-	}
+	};
 
-	closeDuplicate(activeLeaf: WorkspaceLeaf, workspace: Workspace, leaf: WorkspaceLeaf, leafPath: string) {
-		activeLeaf?.detach();
-		workspace.revealLeaf(leaf);
-		if (this.settings.beNotified) {
-			new Notice(`"${leafPath}" already opened`);
+	closeDuplicate(
+		activeLeaf: WorkspaceLeaf,
+		workspace: Workspace,
+		leaf: WorkspaceLeaf,
+		leafPath: string,
+		isSameWindowDupli: boolean
+	) {
+		// when clicking on a link
+		if (
+			(activeLeaf as any).history.backHistory.length ||
+			!isSameWindowDupli
+		) {
+			leaf.detach();
+			if (this.settings.beNotified) {
+				new Notice(`"${leafPath}" has been re-opened`);
+			}
+		} else {
+			activeLeaf?.detach();
+			workspace.revealLeaf(leaf);
+			if (this.settings.beNotified) {
+				new Notice(`"${leafPath}" already opened`);
+			}
 		}
 	}
 }

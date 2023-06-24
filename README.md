@@ -1,19 +1,30 @@
 # Close similar tabs
 
 This plugin prevents you from having duplicate tabs in Obsidian by automatically closing them.  
-By default, it closes duplicates within each window, but users can set the "Close by window" setting to "Current window only" or "All windows". With this second setting, it's impossible to have the same tab open twice anywhere in your Obsidian workspace.  
-edit: now split panels are supported
 
-New settings:  
-"No empty tabs" to avoid new empty tabs duplicates. (the new one is kept)  
-"Toggle Close Similar Tabs" to enable/disable Close Similar Tabs  
-But these settings can be directly accessed from the Command palette with the command "Close Similar Tabs parameters"
+2 modes:
+    * "by window": closes duplicates in each window independently
+    * "All windows": if you reopen same file in a different window, the duplicate is closed. inside a window same as first option. 
 
-![pict](menu.jpg)
+other options:
+    * "No empty tabs" to avoid empty tabs duplicates in each window.
+    * "Be clearly Notified" indicates clearly what's happened.
 
-So you can temporarly turn off Close Similar Tabs
-or quickly change any parameter. 
+You can split normally a file, it won't close the duplicate tab.
+Opening a link, without pressing ctrl, duplicate tab is closed.
 
-![New demo](CST.gif)
+2 commands:  
+    * "Close Similar Tabs parameters" to open a modal with preferences.
+    * "Quick switch" to rapidely turn on/off Close Similar Tabs. it doesn't disable the plugin. (linked to the parameter in preferences)
+
+"Quick switch", in preferences, to enable/disable Close Similar Tabs, without having to disable the plugin.
+
 
 ![demo](demo.gif)
+
+Commands
+![pict](img/CST-commands.jpg)
+Parameters
+![pict](img/CST-params.jpg)
+
+

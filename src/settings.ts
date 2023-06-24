@@ -13,17 +13,27 @@ export class DuplicateTabsSettingsTab extends PluginSettingTab {
 		const { containerEl } = this;
 		containerEl.empty();
 		containerEl.createEl("h1", { text: "Close Similar Tabs" });
-		const linkText = containerEl.createEl("span", {
-			text: " 🌴",
+		const content = `
+		<p>
+		Repository: 🌴 <a href="https://github.com/1C0D/Obsidian-Close-Similar-Tabs">1C0D/Obsidian-Close-Similar-Tabs</a> 🌴
+		</p>
+		`;
+
+		containerEl.createDiv("", (el: HTMLDivElement) => {
+			el.innerHTML = content;
 		});
-		const linkContainer = containerEl.createEl("p", {
-			text: "Repository: 🌴 ",
-		});
-		linkContainer.createEl("a", {
-			text: "1C0D/Obsidian-Close-Similar-Tabs",
-			href: "https://github.com/1C0D/Obsidian-Close-Similar-Tabs",
-		});
-		linkContainer.appendChild(linkText);
+		
+		new Setting(containerEl)
+			.setName("Quick switch")
+			.setDesc("Enable/disable Close Similar Tabs")
+			.addToggle((toggle) => {
+				toggle
+					.setValue(this.plugin.settings.toggleCloseSimilarTabs)
+					.onChange((value) => {
+						this.plugin.settings.toggleCloseSimilarTabs = value;
+						this.plugin.saveSettings();
+					});
+			});
 
 		new Setting(containerEl)
 			.setName("Close by window")
@@ -55,20 +65,10 @@ export class DuplicateTabsSettingsTab extends PluginSettingTab {
 			});
 
 		new Setting(containerEl)
-			.setName("Toggle Close Similar Tabs")
-			.setDesc("Enable/disable Close Similar Tabs")
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.toggleCloseSimilarTabs)
-					.onChange((value) => {
-						this.plugin.settings.toggleCloseSimilarTabs = value;
-						this.plugin.saveSettings();
-					});
-			});
-
-		new Setting(containerEl)
-			.setName("Be Notified")
-			.setDesc("open a notification pop up when a similar tab already exists")
+			.setName("Be Clearly Notified")
+			.setDesc(
+				"open a specific notification pop up, when a similar tab already exists"
+			)
 			.addToggle((toggle) => {
 				toggle
 					.setValue(this.plugin.settings.beNotified)
@@ -76,10 +76,11 @@ export class DuplicateTabsSettingsTab extends PluginSettingTab {
 						this.plugin.settings.beNotified = value;
 						this.plugin.saveSettings();
 					});
-			});		
-		
+			});
+
 		containerEl.createEl("p", {
-			text: 'Check "Close Similar Tabs parameters" in Command palette to directly change these parameters, from the editor',
+			text: `2 commands: "Close Similar Tabs parameters" to directly change parameters, from the editor 
+			and "Quick switch" to temporarly enable/disable Close Similar Tabs.,`
 		});
 	}
 }
