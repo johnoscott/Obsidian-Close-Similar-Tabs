@@ -39,7 +39,6 @@ export default class DuplicateTabs extends Plugin {
 				this.app.workspace.on(
 					"layout-change",
 					() => {
-						console.log("layout-change")
 						if (this.settings.toggleCloseSimilarTabs)
 							this.findDuplicates();
 					}
@@ -49,7 +48,6 @@ export default class DuplicateTabs extends Plugin {
 				this.app.workspace.on(
 					"active-leaf-change",
 					() => {
-						console.log("active-leaf-change")
 						if (this.settings.toggleCloseSimilarTabs)
 							this.findDuplicates();
 					}
