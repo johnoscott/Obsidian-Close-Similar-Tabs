@@ -59,7 +59,7 @@ export default class DuplicateTabs extends Plugin {
 
 		this.addCommand({
 			id: "close-similar-tabs-params",
-			name: "Close similar tabs parameters",
+			name: "Parameters",
 			callback: () => {
 				new DuplicateTabsModal(this.app, this).open();
 			},
