@@ -1,9 +1,9 @@
 import { Notice, Plugin, Workspace, WorkspaceLeaf } from "obsidian";
 import { DuplicateTabsSettingsTab } from "src/settings";
-import { CSTNewVersion, DuplicateTabsModal } from "./modal";
+import { DuplicateTabsModal } from "./modal";
 
 interface TabCessionsSettings {
-	savedVersion: string;
+	// savedVersion: string;
 	byWindow: "current" | "all";
 	noEmptyTabs: boolean;
 	toggleCloseSimilarTabs: boolean;
@@ -11,7 +11,7 @@ interface TabCessionsSettings {
 }
 
 const DEFAULT_SETTINGS: TabCessionsSettings = {
-	savedVersion: "0.0.0",
+	// savedVersion: "0.0.0",
 	byWindow: "current",
 	noEmptyTabs: true,
 	toggleCloseSimilarTabs: true,
@@ -24,23 +24,34 @@ export default class DuplicateTabs extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new DuplicateTabsSettingsTab(this.app, this));
-		if (
-			this.settings.savedVersion !== "0.0.0" && // if never installed false
-			this.settings.savedVersion !== this.manifest.version // if reinstall false
-		) {
-			new CSTNewVersion(this.app, this).open();
-		} else {
-			this.settings.savedVersion = this.manifest.version;
-		}
+		// if (
+		// 	this.settings.savedVersion !== "0.0.0" && // if never installed false
+		// 	this.settings.savedVersion !== this.manifest.version // if reinstall false
+		// ) {
+		// 	new CSTNewVersion(this.app, this).open();
+		// } else {
+		// 	this.settings.savedVersion = this.manifest.version;
+		// }
 		await this.saveSettings();
 
 		this.app.workspace.onLayoutReady(() => {
 			this.registerEvent(
 				this.app.workspace.on(
-					"active-leaf-change",
-					(leaf: WorkspaceLeaf) => {
+					"layout-change",
+					() => {
+						console.log("layout-change")
 						if (this.settings.toggleCloseSimilarTabs)
-							this.findDuplicates(leaf);
+							this.findDuplicates();
+					}
+				)
+			);
+			this.registerEvent(
+				this.app.workspace.on(
+					"active-leaf-change",
+					() => {
+						console.log("active-leaf-change")
+						if (this.settings.toggleCloseSimilarTabs)
+							this.findDuplicates();
 					}
 				)
 			);
@@ -80,7 +91,8 @@ export default class DuplicateTabs extends Plugin {
 	}
 
 	// activeLeaf = last leaf created, removed when it's a duplicate
-	private findDuplicates = (activeLeaf: WorkspaceLeaf) => {
+	private findDuplicates = () => {
+		const activeLeaf = this.app.workspace.getLeaf(false)
 		const byWindow = this.settings.byWindow;
 		const noEmptyTabs = this.settings.noEmptyTabs;
 		// on what window active is

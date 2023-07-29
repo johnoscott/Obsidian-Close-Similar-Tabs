@@ -1,42 +1,42 @@
 import { App, Modal, Setting } from "obsidian";
 import DuplicateTabs from "./main";
 
-export class CSTNewVersion extends Modal {
-	constructor(app: App, public plugin: DuplicateTabs) {
-		super(app);
-		this.plugin = plugin;
-	}
+// export class CSTNewVersion extends Modal {
+// 	constructor(app: App, public plugin: DuplicateTabs) {
+// 		super(app);
+// 		this.plugin = plugin;
+// 	}
 
-	onOpen() {
-		const { contentEl } = this;
-		contentEl.empty();
-		contentEl.createEl("h1", { text: "Close Similar Tabs" });
-		contentEl.createEl("h4", { text: "What's new:" });
-		const content = `
-        <ul>
-            <li>Using "All windows" option (fixed), if you reopen a tab in a different window, duplicate tab closed.</li>
+// 	onOpen() {
+// 		const { contentEl } = this;
+// 		contentEl.empty();
+// 		contentEl.createEl("h1", { text: "Close Similar Tabs" });
+// 		contentEl.createEl("h4", { text: "What's new:" });
+// 		const content = `
+//         <ul>
+//             <li>Using "All windows" option (fixed), if you reopen a tab in a different window, duplicate tab closed.</li>
 
-            <li>Opening a wikilink, without pressing CTRL, the page of the link replaced by the new link (default behavior), duplicate tab closed.</li>
+//             <li>Opening a wikilink, without pressing CTRL, the page of the link replaced by the new link (default behavior), duplicate tab closed.</li>
 
-			<li>Opening a link, pressing CTRL, existing duplicate tab is reopened.<li>
+// 			<li>Opening a link, pressing CTRL, existing duplicate tab is reopened.<li>
 
-			<li>Notifications specifiy if "has been re-opened" or "already opened"</li>
+// 			<li>Notifications specifiy if "has been re-opened" or "already opened"</li>
 
-			<li>New command: <b>"Quick switch"</b> to quickly switch Close Similar Tabs (not disabling the pluging)<li>
-        </ul>
-        `;
-		contentEl.createDiv("", (el: HTMLDivElement) => {
-			el.innerHTML = content;
-		});
-	}
+// 			<li>New command: <b>"Quick switch"</b> to quickly switch Close Similar Tabs (not disabling the pluging)<li>
+//         </ul>
+//         `;
+// 		contentEl.createDiv("", (el: HTMLDivElement) => {
+// 			el.innerHTML = content;
+// 		});
+// 	}
 
-	async onClose() {
-		const { contentEl } = this;
-		contentEl.empty();
-		this.plugin.settings.savedVersion = this.plugin.manifest.version;
-		await this.plugin.saveSettings();
-	}
-}
+// 	async onClose() {
+// 		const { contentEl } = this;
+// 		contentEl.empty();
+// 		this.plugin.settings.savedVersion = this.plugin.manifest.version;
+// 		await this.plugin.saveSettings();
+// 	}
+// }
 
 export class DuplicateTabsModal extends Modal {
 	plugin: DuplicateTabs;
