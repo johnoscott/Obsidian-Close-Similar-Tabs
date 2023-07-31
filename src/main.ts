@@ -3,7 +3,6 @@ import { DuplicateTabsSettingsTab } from "src/settings";
 import { DuplicateTabsModal } from "./modal";
 
 interface TabCessionsSettings {
-	// savedVersion: string;
 	byWindow: "current" | "all";
 	noEmptyTabs: boolean;
 	toggleCloseSimilarTabs: boolean;
@@ -11,7 +10,6 @@ interface TabCessionsSettings {
 }
 
 const DEFAULT_SETTINGS: TabCessionsSettings = {
-	// savedVersion: "0.0.0",
 	byWindow: "current",
 	noEmptyTabs: true,
 	toggleCloseSimilarTabs: true,
@@ -24,32 +22,15 @@ export default class DuplicateTabs extends Plugin {
 	async onload() {
 		await this.loadSettings();
 		this.addSettingTab(new DuplicateTabsSettingsTab(this.app, this));
-		// if (
-		// 	this.settings.savedVersion !== "0.0.0" && // if never installed false
-		// 	this.settings.savedVersion !== this.manifest.version // if reinstall false
-		// ) {
-		// 	new CSTNewVersion(this.app, this).open();
-		// } else {
-		// 	this.settings.savedVersion = this.manifest.version;
-		// }
 		await this.saveSettings();
 
 		this.app.workspace.onLayoutReady(() => {
 			this.registerEvent(
 				this.app.workspace.on(
-					"layout-change",
-					() => {
-						if (this.settings.toggleCloseSimilarTabs)
-							this.findDuplicates();
-					}
-				)
-			);
-			this.registerEvent(
-				this.app.workspace.on(
 					"active-leaf-change",
-					() => {
+					(leaf: WorkspaceLeaf) => {
 						if (this.settings.toggleCloseSimilarTabs)
-							this.findDuplicates();
+							this.findDuplicates(leaf);
 					}
 				)
 			);
@@ -57,7 +38,7 @@ export default class DuplicateTabs extends Plugin {
 
 		this.addCommand({
 			id: "close-similar-tabs-params",
-			name: "Parameters",
+			name: "Close similar tabs parameters",
 			callback: () => {
 				new DuplicateTabsModal(this.app, this).open();
 			},
@@ -89,14 +70,13 @@ export default class DuplicateTabs extends Plugin {
 	}
 
 	// activeLeaf = last leaf created, removed when it's a duplicate
-	private findDuplicates = () => {
-		const activeLeaf = this.app.workspace.getLeaf(false)
-		const byWindow = this.settings.byWindow;
-		const noEmptyTabs = this.settings.noEmptyTabs;
+	private findDuplicates = (activeLeaf: WorkspaceLeaf) => {
+		const { byWindow, noEmptyTabs } = this.settings;
+		const { workspace } = this.app;
+
 		// on what window active is
 		const activeView = activeLeaf.view;
 		const isMainWindowActive = activeView?.containerEl.win == window;
-		const { workspace } = this.app;
 		const rootSplitActive = activeLeaf.getRoot() == workspace.rootSplit;
 
 		// get active relative path (folder?/name)
