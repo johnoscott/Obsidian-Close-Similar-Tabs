@@ -1,10 +1,10 @@
-import { App, PluginSettingTab, Setting } from "obsidian";
-import DuplicateTabs from "src/main";
+import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import CST from "./main";
 
 export class DuplicateTabsSettingsTab extends PluginSettingTab {
-	plugin: DuplicateTabs;
+	plugin: CST;
 
-	constructor(app: App, plugin: DuplicateTabs) {
+	constructor(app: App, plugin: CST) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -28,10 +28,14 @@ export class DuplicateTabsSettingsTab extends PluginSettingTab {
 			.setDesc("Enable/disable Close Similar Tabs")
 			.addToggle((toggle) => {
 				toggle
-					.setValue(this.plugin.settings.toggleCloseSimilarTabs)
+					.setValue(this.plugin.settings.enableCST)
 					.onChange((value) => {
-						this.plugin.settings.toggleCloseSimilarTabs = value;
+						this.plugin.settings.enableCST = value;
 						this.plugin.saveSettings();
+						const message = this.plugin.settings.enableCST
+							? "Close similar tabs ON"
+							: "Close similar tabs OFF";
+						new Notice(`${message}`);
 					});
 			});
 
@@ -47,9 +51,11 @@ export class DuplicateTabsSettingsTab extends PluginSettingTab {
 						all: "All windows",
 					})
 					.setValue(this.plugin.settings.byWindow)
-					.onChange(async (value: "all" | "current") => {
-						this.plugin.settings.byWindow = value;
-						this.plugin.saveSettings();
+					.onChange(async (value: string) => {
+						if (value === "all" || value === "current") {
+							this.plugin.settings.byWindow = value;
+							this.plugin.saveSettings();
+						}
 					});
 			});
 		new Setting(containerEl)

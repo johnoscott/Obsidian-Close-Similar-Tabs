@@ -1,42 +1,5 @@
-import { App, Modal, Setting } from "obsidian";
+import { App, Modal, Notice, Setting } from "obsidian";
 import DuplicateTabs from "./main";
-
-// export class CSTNewVersion extends Modal {
-// 	constructor(app: App, public plugin: DuplicateTabs) {
-// 		super(app);
-// 		this.plugin = plugin;
-// 	}
-
-// 	onOpen() {
-// 		const { contentEl } = this;
-// 		contentEl.empty();
-// 		contentEl.createEl("h1", { text: "Close Similar Tabs" });
-// 		contentEl.createEl("h4", { text: "What's new:" });
-// 		const content = `
-//         <ul>
-//             <li>Using "All windows" option (fixed), if you reopen a tab in a different window, duplicate tab closed.</li>
-
-//             <li>Opening a wikilink, without pressing CTRL, the page of the link replaced by the new link (default behavior), duplicate tab closed.</li>
-
-// 			<li>Opening a link, pressing CTRL, existing duplicate tab is reopened.<li>
-
-// 			<li>Notifications specifiy if "has been re-opened" or "already opened"</li>
-
-// 			<li>New command: <b>"Quick switch"</b> to quickly switch Close Similar Tabs (not disabling the pluging)<li>
-//         </ul>
-//         `;
-// 		contentEl.createDiv("", (el: HTMLDivElement) => {
-// 			el.innerHTML = content;
-// 		});
-// 	}
-
-// 	async onClose() {
-// 		const { contentEl } = this;
-// 		contentEl.empty();
-// 		this.plugin.settings.savedVersion = this.plugin.manifest.version;
-// 		await this.plugin.saveSettings();
-// 	}
-// }
 
 export class DuplicateTabsModal extends Modal {
 	plugin: DuplicateTabs;
@@ -56,10 +19,14 @@ export class DuplicateTabsModal extends Modal {
 			.setDesc("Enable/disable Close Similar Tabs")
 			.addToggle((toggle) => {
 				toggle
-					.setValue(this.plugin.settings.toggleCloseSimilarTabs)
+					.setValue(this.plugin.settings.enableCST)
 					.onChange((value) => {
-						this.plugin.settings.toggleCloseSimilarTabs = value;
+						this.plugin.settings.enableCST = value;
 						this.plugin.saveSettings();
+						const message = this.plugin.settings.enableCST
+							? "Close similar tabs ON"
+							: "Close similar tabs OFF";
+						new Notice(`${message}`);
 					});
 			});
 
@@ -75,9 +42,11 @@ export class DuplicateTabsModal extends Modal {
 						all: "All windows",
 					})
 					.setValue(this.plugin.settings.byWindow)
-					.onChange(async (value: "all" | "current") => {
-						this.plugin.settings.byWindow = value;
-						this.plugin.saveSettings();
+					.onChange(async (value: string) => {
+						if (value === "all" || value === "current") {
+							this.plugin.settings.byWindow = value;
+							this.plugin.saveSettings();
+						}
 					});
 			});
 		new Setting(contentEl)
