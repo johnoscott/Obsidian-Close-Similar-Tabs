@@ -11,6 +11,7 @@ This plugin prevents you from having duplicate tabs in Obsidian by automatically
 other options:  
 - "No empty tabs" to avoid empty tabs duplicates in each window.  
 - "Be clearly Notified" indicates clearly what's happened.  
+- if a tab is pinned it will be ignore, so you can have one duplicate of this tab
   
 You can split normally a file, it won't close the duplicate tab.  
 Opening a link, without pressing ctrl, duplicate tab is closed.  

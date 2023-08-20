@@ -40,7 +40,6 @@ export default class CST extends Plugin {
 						console.debug("////////// layout-change")
 						const modif = this.addedTab()
 						if (modif === 0) {
-							this.leaves.map((i) => { console.log(getPath(i) || "empty") })
 							// be aware clicking the explorer, activeLeaf is the explorer. why we need visible
 							const visibleLeaf = this.getVisibleLeaf()
 							const visibleLeafEl = (visibleLeaf as any).parent.containerEl
@@ -59,12 +58,13 @@ export default class CST extends Plugin {
 
 							const listedPath: string[] = []
 							for (const leaf of sameEl) {
+								if (this.getPinned(leaf)) continue
 								if (
 									!listedPath.includes(getPath(leaf))
 								) listedPath.push(getPath(leaf))
 								else {
 									leaf.detach()
-									if (this.settings.beNotified) new Notice("already opened")
+									if (this.settings.beNotified) new Notice("already opened.")
 									break
 								}
 							}
@@ -85,8 +85,9 @@ export default class CST extends Plugin {
 					}
 					else { // === 0 || 1
 						this.activeLeaf = leaf
+						if (this.getPinned(leaf)) return
 						const duplicate = this.getDupliActive();
-						const notEmpty= await this.detachLeaf(duplicate)
+						const notEmpty = await this.detachLeaf(duplicate)
 						if (this.settings.beNotified && notEmpty) {
 							new Notice("already opened");
 						}
@@ -186,19 +187,17 @@ export default class CST extends Plugin {
 				this.activeLeaf?.detach()
 			}
 		}
-		
+
 		this.app.workspace.revealLeaf(duplicate)
 		return notEmpty
 	}
 
 	getLeaves = (): WorkspaceLeaf[] => {// if all windows set?
 		const { workspace } = this.app
-		const { leftSplit: LS, rightSplit: RS } = workspace;
 		const leavesList: WorkspaceLeaf[] = [];
-		// const rootSplit = leaf!.getRoot() === this.app.workspace.rootSplit;
 
 		workspace.iterateAllLeaves((leaf: WorkspaceLeaf) => {
-			if (leaf.getRoot() !== LS && leaf.getRoot() !== RS) {
+			if (leaf!.getRoot() === workspace.rootSplit && !this.getPinned(leaf)) {
 				leavesList.push(leaf);
 			}
 		});
@@ -233,6 +232,10 @@ export default class CST extends Plugin {
 	getVisibleLeaf() {
 		const { workspace } = this.app
 		return workspace.getLeaf(false)
+	}
+
+	getPinned(leaf: WorkspaceLeaf) {
+		return leaf && leaf.getViewState().pinned
 	}
 
 	async loadSettings() {
