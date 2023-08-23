@@ -52,8 +52,8 @@ export const leafPath = (leave: WorkspaceLeaf) => {
 
 }
 
-export const getPath = (leaf: WorkspaceLeaf | null |undefined):string => {
-    return leaf?.getViewState().state.file || ""
+export const getPath = (leaf: WorkspaceLeaf | null):string => {
+    return (leaf!.view as any).file && (leaf!.view as any).file.path || ""
 }
 
 // active visible leaf
