@@ -32,44 +32,44 @@ export default class CST extends Plugin {
 		this.app.workspace.onLayoutReady(() => {
 
 			// tab opened with click + ctrl
-			this.registerEvent(
-				this.app.workspace.on(
-					"layout-change",
-					() => {
-						if (!this.settings.enableCST) return
-						console.debug("////////// layout-change")
-						const modif = this.addedTab()
-						if (modif === 0) {
-							// be aware clicking the explorer, activeLeaf is the explorer. why we need visible
-							const visibleLeaf = this.getVisibleLeaf()
-							const visibleLeafEl = (visibleLeaf as any).parent.containerEl
-							const sameEl: WorkspaceLeaf[] = []
+			// this.registerEvent(
+			// 	this.app.workspace.on(
+			// 		"layout-change",
+			// 		() => {
+			// 			if (!this.settings.enableCST) return
+			// 			console.debug("////////// layout-change")
+			// 			const modif = this.addedTab()
+			// 			if (modif === 0) {
+			// 				// be aware clicking the explorer, activeLeaf is the explorer. why we need visible
+			// 				const visibleLeaf = this.getVisibleLeaf()
+			// 				const visibleLeafEl = (visibleLeaf as any).parent.containerEl
+			// 				const sameEl: WorkspaceLeaf[] = []
 
-							for (const leaf of this.leaves) {
-								const isSameWindow = leaf!.view.containerEl.win == activeWindow
-								if (
-									isSameWindow
-									&& (leaf as any)!.parent.containerEl == visibleLeafEl
-									&& getPath(leaf)
-								) {
-									sameEl.push(leaf)
-								}
-							}
+			// 				for (const leaf of this.leaves) {
+			// 					const isSameWindow = leaf!.view.containerEl.win == activeWindow
+			// 					if (
+			// 						isSameWindow
+			// 						&& (leaf as any)!.parent.containerEl == visibleLeafEl
+			// 						&& getPath(leaf)
+			// 					) {
+			// 						sameEl.push(leaf)
+			// 					}
+			// 				}
 
-							const listedPath: string[] = []
-							for (const leaf of sameEl) {
-								if (this.getPinned(leaf)) continue
-								if (
-									!listedPath.includes(getPath(leaf))
-								) listedPath.push(getPath(leaf))
-								else {
-									leaf.detach()
-									if (this.settings.beNotified) new Notice("already opened.")
-									break
-								}
-							}
-						}
-					}))
+			// 				const listedPath: string[] = []
+			// 				for (const leaf of sameEl) {
+			// 					if (this.getPinned(leaf)) continue
+			// 					if (
+			// 						!listedPath.includes(getPath(leaf))
+			// 					) listedPath.push(getPath(leaf))
+			// 					else {
+			// 						leaf.detach()
+			// 						if (this.settings.beNotified) new Notice("already opened.")
+			// 						break
+			// 					}
+			// 				}
+			// 			}
+			// 		}))
 
 
 			this.registerEvent(this.app.workspace.on(
@@ -80,7 +80,9 @@ export default class CST extends Plugin {
 					console.debug("////////// active-leaf-change")
 					// this.allActivePath(leaf, true) 
 					const modif = this.addedTab()
-					if (modif === -1) {
+					if (modif === -1
+						|| leaf.getViewState().type === "swar8080/AVAILABLE_PLUGIN_UPDATES"
+						) {
 						return
 					}
 					else { // === 0 || 1
@@ -183,7 +185,8 @@ export default class CST extends Plugin {
 			notEmpty = true
 			this.once = false
 		} else {
-			if (this.settings.noEmptyTabs) {
+			// if (this.settings.noEmptyTabs && duplicate.view.getDisplayText()==="New tab") {
+			if (this.settings.noEmptyTabs && duplicate.getViewState().type === "empty") {
 				this.activeLeaf?.detach()
 			}
 		}
