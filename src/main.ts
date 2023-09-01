@@ -30,7 +30,6 @@ export default class CST extends Plugin {
 		this.addSettingTab(new DuplicateTabsSettingsTab(this.app, this));
 
 		this.app.workspace.onLayoutReady(() => {
-
 			// tab opened with click + ctrl
 			// this.registerEvent(
 			// 	this.app.workspace.on(
@@ -172,7 +171,10 @@ export default class CST extends Plugin {
 		let notEmpty = false
 		if (!duplicate) return
 		//allow undo close tab
-		if (this.once) {
+		if (
+			// this.once
+			true
+		) {
 			if ((this.activeLeaf as any).history.backHistory.length) {
 				await (this.activeLeaf as any).history.back();
 			}
