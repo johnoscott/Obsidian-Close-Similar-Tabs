@@ -1,10 +1,8 @@
 import { App, Notice, PluginSettingTab, Setting } from "obsidian";
-import CST from "./main";
+import MyPlugin from "./main";
 
-export class DuplicateTabsSettingsTab extends PluginSettingTab {
-	plugin: CST;
-
-	constructor(app: App, plugin: CST) {
+export class CSTSettingsTab extends PluginSettingTab {
+	constructor(app: App, public plugin: MyPlugin) {
 		super(app, plugin);
 		this.plugin = plugin;
 	}
@@ -22,17 +20,17 @@ export class DuplicateTabsSettingsTab extends PluginSettingTab {
 		containerEl.createDiv("", (el: HTMLDivElement) => {
 			el.innerHTML = content;
 		});
-		
+
 		new Setting(containerEl)
 			.setName("Quick switch")
 			.setDesc("Enable/disable Close Similar Tabs")
 			.addToggle((toggle) => {
 				toggle
-					.setValue(this.plugin.settings.enableCST)
+					.setValue(this.plugin.settings.switch)
 					.onChange((value) => {
-						this.plugin.settings.enableCST = value;
+						this.plugin.settings.switch = value;
 						this.plugin.saveSettings();
-						const message = this.plugin.settings.enableCST
+						const message = this.plugin.settings.switch
 							? "Close similar tabs ON"
 							: "Close similar tabs OFF";
 						new Notice(`${message}`);
@@ -58,35 +56,9 @@ export class DuplicateTabsSettingsTab extends PluginSettingTab {
 						}
 					});
 			});
-		new Setting(containerEl)
-			.setName("No empty tabs")
-			.setDesc("Activates no several empty tabs")
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.noEmptyTabs)
-					.onChange((value) => {
-						this.plugin.settings.noEmptyTabs = value;
-						this.plugin.saveSettings();
-					});
-			});
-
-		new Setting(containerEl)
-			.setName("Be Clearly Notified")
-			.setDesc(
-				"open a specific notification pop up, when a similar tab already exists"
-			)
-			.addToggle((toggle) => {
-				toggle
-					.setValue(this.plugin.settings.beNotified)
-					.onChange((value) => {
-						this.plugin.settings.beNotified = value;
-						this.plugin.saveSettings();
-					});
-			});
 
 		containerEl.createEl("p", {
-			text: `2 commands: "Close Similar Tabs parameters" to directly change parameters, from the editor 
-			and "Quick switch" to temporarly enable/disable Close Similar Tabs.,`
+			text: `options about not having several empty tabs and pinned tabs are getting back soon`,
 		});
 	}
 }
