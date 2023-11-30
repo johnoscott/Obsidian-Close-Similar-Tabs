@@ -7,7 +7,7 @@ import {
 	WorkspaceLeaf,
 } from "obsidian";
 import { around } from "monkey-around";
-import { debug, log } from "./logs";
+import { debug } from "./logs";
 import { CSTSettingsTab } from "./settings";
 
 declare global {
