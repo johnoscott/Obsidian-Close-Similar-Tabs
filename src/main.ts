@@ -114,9 +114,7 @@ export default class CST extends Plugin {
 						return oldOpenFile.apply(this, args);
 					}
 					debug("Open File");
-					const tot = args;
-
-					let result;
+					let result:any;
 					if (!plugin.link) {
 						debug("args:", ...args);
 						result = plugin.iterate1(plugin, args);
@@ -227,8 +225,6 @@ export default class CST extends Plugin {
 					const activePath =
 						this.getActiveLeaf().getViewState().state.file;
 					if (activePath !== target) {
-						debug("que pasa?");
-						console.log("activePath", activePath);
 						plugin.delActive();
 						const cursPos = leaf.getEphemeralState();
 						app.workspace.setActiveLeaf(leaf);
