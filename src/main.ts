@@ -3,6 +3,7 @@ import {
 	OpenViewState,
 	Plugin,
 	TFile,
+	View,
 	Workspace,
 	WorkspaceLeaf,
 } from "obsidian";
@@ -69,12 +70,12 @@ export default class CST extends Plugin {
 					let [linktext, sourcePath, newLeaf, OpenViewState] = args;
 
 					// || (ctrl) link into the same page
-					const activeLeaf = plugin.getActiveLeaf();
+					const activeLeaf = app.workspace.getActiveViewOfType(View)?.leaf
 					const isPinned = activeLeaf?.getViewState().pinned
 					if (
 						linktext?.includes(
 							sourcePath.split(".").slice(0, -1).join(".")
-						) || isPinned
+						)
 					) {
 						newLeaf = false; // prevent to open new tab even pressing ctrl
 						return oldOpenLinkText.apply(this, [
@@ -84,19 +85,23 @@ export default class CST extends Plugin {
 							OpenViewState,
 						]);
 					} else {
-						// const activeLeaf = plugin.getActiveLeaf();
-						const {
-							isMainWindow: isMainWindowActive,
-							rootSplit: rootSplitActive,
-							el: activeEl,
-						} = plugin.getLeafProperties(activeLeaf);
-						const result = plugin.iterate(
-							plugin,
-							activeEl,
-							linktext,
-							newLeaf as boolean
-						); // return 1 or undefined
-
+						const activeEl = (activeLeaf as any).parentSplit.containerEl
+						let result;
+						if (isPinned){
+							result = plugin.iterate(
+								plugin,
+								activeEl,
+								linktext,
+								false
+							); // return 1 or undefined							
+						}else{
+							result = plugin.iterate(
+								plugin,
+								activeEl,
+								linktext,
+								newLeaf as boolean
+							); // return 1 or undefined
+						}
 						if (!result) {
 							oldOpenLinkText.apply(this, args);
 						}
