@@ -69,10 +69,12 @@ export default class CST extends Plugin {
 					let [linktext, sourcePath, newLeaf, OpenViewState] = args;
 
 					// || (ctrl) link into the same page
+					const activeLeaf = plugin.getActiveLeaf();
+					const isPinned = activeLeaf?.getViewState().pinned
 					if (
 						linktext?.includes(
 							sourcePath.split(".").slice(0, -1).join(".")
-						)
+						) || isPinned
 					) {
 						newLeaf = false; // prevent to open new tab even pressing ctrl
 						return oldOpenLinkText.apply(this, [
@@ -82,7 +84,7 @@ export default class CST extends Plugin {
 							OpenViewState,
 						]);
 					} else {
-						const activeLeaf = plugin.getActiveLeaf();
+						// const activeLeaf = plugin.getActiveLeaf();
 						const {
 							isMainWindow: isMainWindowActive,
 							rootSplit: rootSplitActive,
@@ -114,7 +116,7 @@ export default class CST extends Plugin {
 						return oldOpenFile.apply(this, args);
 					}
 					debug("Open File");
-					let result:any;
+					let result: any;
 					if (!plugin.link) {
 						debug("args:", ...args);
 						result = plugin.iterate1(plugin, args);
