@@ -51,7 +51,7 @@ export function openLinkWrapper(plugin: CST) {
                         ); // return 1 or undefined		
                         // delete empty
                         empties?.pop()?.detach()
-     		
+
                     } else {
                         console.debug("else")
                         const { result, empties, leaves } = iterate(
@@ -68,14 +68,16 @@ export function openLinkWrapper(plugin: CST) {
                         );
                         console.debug("targetFile", targetFile?.path)
                         const leafExists = leaves.filter((l) => {
-                            console.debug("plugin.getLeafPath(l)", plugin.getLeafPath(l))
+                            // console.debug("plugin.getLeafPath(l)", plugin.getLeafPath(l))
                             return plugin.getLeafPath(l) === targetFile?.path
                         })[0]
                         console.debug("leafExists", leafExists?.getDisplayText())
                         if (leafExists)
-                            setTimeout(() => {
-                                leafExists.detach()
-                            }, 0);
+                            if (plugin.ctrl) {
+                                setTimeout(() => {
+                                    leafExists.detach()
+                                }, 80);
+                            }
                     }
                     if (!result) {
                         old.apply(this, args);
