@@ -1,4 +1,4 @@
-import { App, Notice, PluginSettingTab, Setting } from "obsidian";
+import { App, MarkdownRenderer, Notice, PluginSettingTab, Setting } from "obsidian";
 import MyPlugin from "./main";
 
 export class CSTSettingsTab extends PluginSettingTab {
@@ -7,19 +7,27 @@ export class CSTSettingsTab extends PluginSettingTab {
 		this.plugin = plugin;
 	}
 
-	display(): void {
+	async display(): Promise<void> {
 		const { containerEl } = this;
 		containerEl.empty();
 		containerEl.createEl("h1", { text: "Close Similar Tabs" });
-		const content = `
-		<p>
-		Repository: 🌴 <a href="https://github.com/1C0D/Obsidian-Close-Similar-Tabs">1C0D/Obsidian-Close-Similar-Tabs</a> 🌴
+		const content = `Repository: 🌴 [1C0D/Obsidian-Close-Similar-Tabs](https://github.com/1C0D/Obsidian-Close-Similar-Tabs) 🌴
 		</p>
 		`;
 
-		containerEl.createDiv("", (el: HTMLDivElement) => {
-			el.innerHTML = content;
-		});
+		await MarkdownRenderer.render(
+			app,
+			content,
+			containerEl,
+			"",
+			this.plugin,
+		);
+
+		// containerEl.createDiv("", (el: HTMLDivElement) => {
+		// 	el.innerHTML = content;
+		// });
+		// const div = containerEl.createDiv();
+		// div.outerHTML = content
 
 		new Setting(containerEl)
 			.setName("Quick switch")
