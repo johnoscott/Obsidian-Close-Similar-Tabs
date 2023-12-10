@@ -31,7 +31,6 @@ export default class CST extends Plugin {
 	ctrl: boolean
 
 	async onload() {
-		console.log("loading...")
 		await this.loadSettings();
 		await this.saveSettings();
 		this.addSettingTab(new CSTSettingsTab(this.app, this));

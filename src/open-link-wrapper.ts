@@ -1,6 +1,6 @@
 import { around } from "monkey-around";
 import CST from "./main";
-import { Workspace, WorkspaceLeaf } from "obsidian";
+import { Workspace } from "obsidian";
 
 export function openLinkWrapper(plugin: CST) {
     const openLinkPatched = around(Workspace.prototype, {
@@ -14,85 +14,89 @@ export function openLinkWrapper(plugin: CST) {
                 setTimeout(async () => {
                     plugin.link = false;
                 }, 400);
-                console.debug(args); //args: 2023-11-05,2023-11-19.md,tab
+
+                console.debug("args: ", args); //e.g: 2023-11-05,2023-11-19.md,tab
                 let [linktext, sourcePath, newLeaf, OpenViewState] = args;
                 console.debug("newLeaf", newLeaf)
-                console.debug("OpenViewState", OpenViewState)
-                const getLeaf = plugin.getLeaf()
-                console.debug("getLeaf", getLeaf.getDisplayText())
-                const activeLeaf0 = plugin.getActiveLeaf()
-                console.debug("activeLeaf.getDisplayText() ", activeLeaf0.getDisplayText())
                 const activeLeaf = plugin.getVisibleLeaf()
                 console.debug("getVisibleLeaf", activeLeaf?.getDisplayText())
-                if (
+
+                if ( // ok // to same page
                     linktext?.includes(
                         sourcePath.split(".").slice(0, -1).join(".")
                     )
                 ) {
-                    // link to same page
-                    console.debug("link to same page")
+                    console.debug("to same page") // ctrl or not
                     return old.apply(this, [
                         linktext,
                         sourcePath,
-                        newLeaf = false,// don't open new tab if ctrl
+                        newLeaf = false,// don't open new tab
                         OpenViewState,
                     ]);
-                } else {
+
+                } else { // to other page
                     console.debug("to other page")
                     const activeEl = (activeLeaf as any).parentSplit.containerEl
-                    let result;
-                    if (activeLeaf && plugin.getPinned(activeLeaf)) {
+                    const { leaves, empties } = plugin.getLeaves(activeEl)
+                    const linkPart = getFirstPartOfWikiLink(linktext)
+                    const targetFile = app.metadataCache.getFirstLinkpathDest(
+                        linkPart,//→ page.md
+                        sourcePath,
+                    );
+                    const leafExists = leaves.filter(l => { return plugin.getLeafPath(l) === targetFile?.path })[0]
+
+                    if (activeLeaf && plugin.getPinned(activeLeaf)) { // active Leaf Pinned
                         console.debug("getPinned")
-                        const { result, empties, leaves } = iterate(
-                            plugin,
-                            activeEl,
-                            linktext,
-                            false, //newLeaf
-                        ); // return 1 or undefined		
-                        // delete empty
-                        empties?.pop()?.detach()
+                        if (leafExists) {
+                            console.debug("leafExists")
+                            if (linkPart === linktext) { // ok //link without attr 
+                                console.debug("no attr")
+                                setTimeout(() => {
+                                    app.workspace.setActiveLeaf(leafExists, { focus: true })
+                                }, 0)
+                            } else { // ok //link with attr
+                                console.debug("attr")
+                                leafExists.detach()
+                                return old.apply(this, args)
+                            }
+                        } else { // no dupli
+                            return old.apply(this, args);
+                        }
 
                     } else {
-                        console.log("no newLeaf")
-                        const { leaves, empties } = plugin.getLeaves(activeEl)
-                        const linkPart = getFirstPartOfWikiLink(linktext)
-                        const targetFile = app.metadataCache.getFirstLinkpathDest(
-                            linkPart,//→ page.md
-                            sourcePath,
-                        );
-                        const leafExists = leaves.filter(l => { return plugin.getLeafPath(l) === targetFile?.path })[0]
+                        console.debug("no newLeaf")
                         if (leafExists) { // dupli
-                            console.log("leafExists")
+                            console.debug("leafExists")
                             if (newLeaf === false) { //without ctrl
-                                console.log("without ctrl")
+                                console.debug("without ctrl")
                                 if (linkPart === linktext) { // ok link without attr 
-                                    console.log("no attr")
+                                    console.debug("no attr")
                                     activeLeaf?.detach()
                                     setTimeout(() => {
                                         app.workspace.setActiveLeaf(leafExists, { focus: true })
                                     }, 0)
                                     return
-                                } else { // ok link with attr 
-                                    console.log("attr")
+                                } else { // link with attr // ok?
+                                    console.debug("attr")
                                     leafExists.detach()
                                     return old.apply(this, args)
                                 }
-                            } else {
-                                console.log("with ctrl")
+                            } else { // ok // with ctrl 
+                                console.debug("with ctrl")
                                 if (linkPart === linktext) { // ok link without attr 
-                                    console.log("no attr")
+                                    console.debug("no attr")
                                     setTimeout(() => {
                                         app.workspace.setActiveLeaf(leafExists, { focus: true })
                                     }, 0)
                                     return
-                                } else { // ok link with attr 
-                                    console.log("attr")
+                                } else { // ok // link with attr 
+                                    console.debug("attr")
                                     leafExists.detach()
                                     return old.apply(this, args)
                                 }
                             }
                         } else { // normal
-                            console.log("link chg actual page")
+                            console.debug("link chg actual page")
                             return old.apply(this, args);
                         }
                     }
@@ -101,17 +105,6 @@ export function openLinkWrapper(plugin: CST) {
         },
     });
     return openLinkPatched;
-}
-
-function hasLinkAttr(linkText: string) {
-    const separators = "#^|";
-    for (let i = 0; i < separators.length - 1; i++) {
-        const index = linkText.indexOf(separators[i]);
-        if (index !== -1) {
-            return true
-        }
-    }
-    return
 }
 
 function getFirstPartOfWikiLink(linkText: string) {
@@ -128,46 +121,4 @@ function getFirstPartOfWikiLink(linkText: string) {
 
     const firstPart = linkText.substring(0, separatorIndex);
     return firstPart;
-}
-
-
-function iterate(
-    plugin: CST,
-    activeEl: HTMLElement,
-    target: string,
-    newLeaf = false,
-) {
-    let result;
-    let leaves: WorkspaceLeaf[] = []
-    let empties: WorkspaceLeaf[] = []
-
-    app.workspace.iterateAllLeaves((leaf) => {
-        const {
-            isMainWindow: isMainWindowDupli,
-            rootSplit: rootSplitDupli,
-            el: dupliEl,
-            isSameWindow: isSameWindowDupli,
-        } = plugin.getLeafProperties(leaf, true);
-        if (
-            (isMainWindowDupli && !rootSplitDupli) || //not sidebars
-            (isSameWindowDupli && activeEl != dupliEl) || //split window
-            (!isSameWindowDupli && plugin.settings.byWindow === "current") //not same window
-        ) {
-            return;
-        }
-        if (plugin.isEmpty(leaf)) {
-            empties.push(leaf)
-            return
-        }
-        leaves.push(leaf)
-        const viewState = leaf.getViewState();
-        if (viewState.state?.file?.includes(target)) {
-            if (!newLeaf) plugin.delActive();
-            const cursPos = leaf?.getEphemeralState(); //existing leaf cursor pos
-            app.workspace.setActiveLeaf(leaf);
-            leaf.setEphemeralState(cursPos);
-            result = 1;
-        }
-    });
-    return { result, empties, leaves };
 }

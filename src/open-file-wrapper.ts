@@ -88,7 +88,6 @@ export function openFileWrapper(plugin: CST) {
                     if (isMainWindow) {
                         await removeEmpty(empties?.pop()!);
                     } else {
-                        console.log("ici")
                         await removeEmpty(empties?.pop()!);
                         await removeEmpty(empties?.pop()!);
                     }
@@ -125,67 +124,13 @@ function init(activeLeaf:WorkspaceLeaf, args:any, plugin:CST){
 
 function removeEmpty(leaf: WorkspaceLeaf): Promise<void> {
     return new Promise<void>((resolve) => {
-        console.log("Detaching leaf");
+        console.debug("Detaching leaf");
         leaf?.detach();
         resolve();
     });
 }
 
-// todo test bugs/ test cursor position/ctrl link to the same page/problem of history
-function monkeyAfter(activeEl: HTMLElement, plugin: CST, leaves: WorkspaceLeaf[], empties: WorkspaceLeaf[], activeLeaf: WorkspaceLeaf, activCursPos: any) {
-    const { leaves: leavesAfter, empties: emptiesAfter } = plugin.getLeaves(activeEl)
-    leavesAfter.forEach(l => console.debug("l after", l.getDisplayText()))
-    emptiesAfter.forEach(l => console.debug("e after", l.getDisplayText()))
-    const isEmptiesAdded = emptiesAfter.length && emptiesAfter.length < empties.length//strange but that's the way
-    console.debug("empties.length", empties.length)
-    console.debug("emptiesAfter.length", emptiesAfter.length)
-
-    // const newLeaf = leavesAfter.filter(l => !leaves.includes(l))[0]
-    // const dupli = leaves.filter(l => { return plugin.getLeafPath(newLeaf) === plugin.getLeafPath(l) })[0]
-    // const original = leaves.filter(l => { return l !== dupli && plugin.getLeafPath(dupli) })[0]
-    // console.debug("dupli !== original", dupli !== original)
-    // console.log("dupli", plugin.getLeafPath(dupli))
-    if (isEmptiesAdded) { // delete empty added when not detaching active leaf
-        console.log("ici")
-        emptiesAfter.length
-        empties.pop()?.detach()
-        // emptiesAfter.forEach(empty => {
-        //     empty.detach()
-        // });
-    }
-    // const isPinnedActive = activeLeaf.getViewState().type === "empty"
-    // console.log("plugin.getLeafPath(newLeaf)", plugin.getLeafPath(newLeaf))
-    // console.log("(plugin.getLeafPath(activeLeaf))", (plugin.getLeafPath(activeLeaf)))
-    // console.log("(plugin.getLeafPath(original))", (plugin.getLeafPath(original)))
-    // if (dupli && dupli !== activeLeaf && isPinnedActive) {
-    //     console.log("is NOT activeLeaf")
-    //     if (plugin.getLeafPath(newLeaf) === plugin.getLeafPath(dupli))
-    //         newLeaf?.detach()
-    //     if (plugin.getLeafPath(newLeaf) !== (plugin.getLeafPath(activeLeaf))) {
-    //         console.log("reveal dupli")
-    //         app.workspace.revealLeaf(dupli)
-    //     } else if ((plugin.getLeafPath(activeLeaf)) === undefined) {//empty && pinned
-    //         console.log("undefined")
-    //         setTimeout(() => {
-    //             app.workspace.revealLeaf(dupli)
-    //         }, 80);
-    //     }
-    //     // app.workspace.setActiveLeaf(leaf);
-    //     // leaf.setEphemeralState(cursPos);
-    // } else if (dupli) { // ok
-    //     console.log("is activeLeaf")
-    //     const activCursPos = newLeaf?.getEphemeralState();
-    //     newLeaf?.detach()
-    //     app.workspace.revealLeaf(dupli)
-    //     // app.workspace.setActiveLeaf(dupli);
-    //     // dupli.setEphemeralState(activCursPos);
-    // } else {
-    //     console.log("autre")
-    // }
-}
-
 function getConditions(plugin: CST, activeLeaf: WorkspaceLeaf): { activeLeaf: WorkspaceLeaf, activCursPos: any, activeEl: HTMLElement, leaves: WorkspaceLeaf[], empties: WorkspaceLeaf[], isTherePin: boolean } {
-    console.log("activeLeaf", activeLeaf?.getDisplayText())
     const activCursPos = activeLeaf?.getEphemeralState();
     const { el: activeEl } = plugin.getLeafProperties(activeLeaf);
     const { leaves, empties, isTherePin } = plugin.getLeaves(activeEl);
