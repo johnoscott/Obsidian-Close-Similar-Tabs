@@ -10,13 +10,12 @@ export function openFileWrapper(plugin: CST) {
     const openFilePatched = around(WorkspaceLeaf.prototype, {
         //@ts-ignore
         openFile(old) {
-            return function (...args) {
+            return async function (...args) {
                 // console.debug("first args:", ...args);// file + object: active, state { mode: 'source', file: '2023-12-06.md' }
                 /* state → {active: false}
                 active: true when drag&drop on a tab,
                 active: false when drag/insert a new tab
                 undefined no drag */
-                let result: any;
                 if (!plugin.settings.switch || plugin.link) {
                     return old.apply(this, args);
                 }
@@ -31,18 +30,9 @@ export function openFileWrapper(plugin: CST) {
 
                 if (activeLeaf.getDisplayText() === "Files") {
                     console.debug("EXPLORER")
-                    console.debug("app.workspace.getLeaf()", app.workspace.getLeaf().getDisplayText())
                     const activeLeaf = app.workspace.getLeaf()// still check what active leaf works
-                    const {
-                        activCursPos,
-                        activeEl,
-                        leaves,
-                        empties,
-                        isTherePin
-                    } = getConditions(plugin, activeLeaf)
-                    const leafExists = leaves.filter(l => { return plugin.getLeafPath(l) === target })[0]
-                    leaves.forEach((l) => console.debug("l before", l.getDisplayText()))
-                    empties.forEach((l) => console.debug("e before", l.getDisplayText()))
+                    console.debug("app.workspace.getLeaf()", activeLeaf.getDisplayText())
+                    const { empties, leafExists } = init(activeLeaf, args, plugin)
                     if (leafExists) {
                         setTimeout(() => {
                             app.workspace.setActiveLeaf(leafExists, { focus: true })
@@ -65,17 +55,11 @@ export function openFileWrapper(plugin: CST) {
                         return old.apply(this, args)
                     }
 
-                } if (state?.active === true) {
+                } else if (state?.active === true) {
                     const activeLeaf = app.workspace.getLeaf()
                     console.debug("quickswith or drag on tab header")
-                    const {
-                        activCursPos,
-                        activeEl,
-                        leaves,
-                        empties,
-                        isTherePin
-                    } = getConditions(plugin, activeLeaf)
-                    const leafExists = leaves.filter(l => { return plugin.getLeafPath(l) === target })[0]
+                    const { empties, leafExists } = init(activeLeaf, args, plugin)
+
                     if (leafExists) {
                         console.debug("leafExists")
                         setTimeout(() => {
@@ -93,6 +77,21 @@ export function openFileWrapper(plugin: CST) {
                         console.debug("// today note no existing tab")
                         return old.apply(this, args)
                     }
+                } else if (state?.active === false) {// draggin/insert
+                    const activeLeaf = app.workspace.getLeaf()
+                    console.debug("app.workspace.getLeaf()", activeLeaf.getDisplayText())
+                    const {empties,leafExists} =init(activeLeaf,args,plugin)
+                    setTimeout(() => {
+                        app.workspace.setActiveLeaf(leafExists, { focus: true })
+                    }, 100);
+                    const isMainWindow = activeLeaf?.view.containerEl.win === window;
+                    if (isMainWindow) {
+                        await removeEmpty(empties?.pop()!);
+                    } else {
+                        console.log("ici")
+                        await removeEmpty(empties?.pop()!);
+                        await removeEmpty(empties?.pop()!);
+                    }
                 }
             };
         },
@@ -100,8 +99,36 @@ export function openFileWrapper(plugin: CST) {
     return openFilePatched;
 }
 
-function getPinned(leaf: WorkspaceLeaf) {
-    return leaf?.getViewState().pinned;
+function init(activeLeaf:WorkspaceLeaf, args:any, plugin:CST){
+    const [file, state] = args;
+    console.debug("state", state)
+    const target = file.path
+    const {
+        activCursPos,
+        activeEl,
+        leaves,
+        empties,
+        isTherePin
+    } = getConditions(plugin, activeLeaf)
+    const leafExists = leaves.filter(l => { return plugin.getLeafPath(l) === target })[0]
+    console.debug("leaves.length", leaves.length)
+    console.debug("empties.length", empties.length)
+    return {
+        activCursPos,
+        activeEl,
+        leaves,
+        empties,
+        isTherePin,
+        leafExists
+    }
+}
+
+function removeEmpty(leaf: WorkspaceLeaf): Promise<void> {
+    return new Promise<void>((resolve) => {
+        console.log("Detaching leaf");
+        leaf?.detach();
+        resolve();
+    });
 }
 
 // todo test bugs/ test cursor position/ctrl link to the same page/problem of history

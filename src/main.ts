@@ -73,7 +73,7 @@ export default class CST extends Plugin {
 	}
 
 	getActiveLeaf() {
-		return (app as any).workspace.activeLeaf;
+		return (app as any).workspace.activeLeaf;// in some conditions it remains better !
 	}
 	
 	getLeaf() {

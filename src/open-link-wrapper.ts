@@ -53,40 +53,81 @@ export function openLinkWrapper(plugin: CST) {
                         empties?.pop()?.detach()
 
                     } else {
-                        console.debug("else")
-                        const { result, empties, leaves } = iterate(
-                            plugin,
-                            activeEl,
-                            linktext,
-                            !!newLeaf
-                        ); // return 1 or undefined
-                        const separator = linktext.includes("#") ? "#" : "^";
-                        const linkParts = linktext.split(separator);
+                        console.log("no newLeaf")
+                        const { leaves, empties } = plugin.getLeaves(activeEl)
+                        const linkPart = getFirstPartOfWikiLink(linktext)
                         const targetFile = app.metadataCache.getFirstLinkpathDest(
-                            linkParts[0],//→ page.md
+                            linkPart,//→ page.md
                             sourcePath,
                         );
-                        console.debug("targetFile", targetFile?.path)
-                        const leafExists = leaves.filter((l) => {
-                            // console.debug("plugin.getLeafPath(l)", plugin.getLeafPath(l))
-                            return plugin.getLeafPath(l) === targetFile?.path
-                        })[0]
-                        console.debug("leafExists", leafExists?.getDisplayText())
-                        if (leafExists)
-                            if (plugin.ctrl) {
-                                setTimeout(() => {
+                        const leafExists = leaves.filter(l => { return plugin.getLeafPath(l) === targetFile?.path })[0]
+                        if (leafExists) { // dupli
+                            console.log("leafExists")
+                            if (newLeaf === false) { //without ctrl
+                                console.log("without ctrl")
+                                if (linkPart === linktext) { // ok link without attr 
+                                    console.log("no attr")
+                                    activeLeaf?.detach()
+                                    setTimeout(() => {
+                                        app.workspace.setActiveLeaf(leafExists, { focus: true })
+                                    }, 0)
+                                    return
+                                } else { // ok link with attr 
+                                    console.log("attr")
                                     leafExists.detach()
-                                }, 80);
+                                    return old.apply(this, args)
+                                }
+                            } else {
+                                console.log("with ctrl")
+                                if (linkPart === linktext) { // ok link without attr 
+                                    console.log("no attr")
+                                    setTimeout(() => {
+                                        app.workspace.setActiveLeaf(leafExists, { focus: true })
+                                    }, 0)
+                                    return
+                                } else { // ok link with attr 
+                                    console.log("attr")
+                                    leafExists.detach()
+                                    return old.apply(this, args)
+                                }
                             }
-                    }
-                    if (!result) {
-                        old.apply(this, args);
+                        } else { // normal
+                            console.log("link chg actual page")
+                            return old.apply(this, args);
+                        }
                     }
                 }
             };
         },
     });
     return openLinkPatched;
+}
+
+function hasLinkAttr(linkText: string) {
+    const separators = "#^|";
+    for (let i = 0; i < separators.length - 1; i++) {
+        const index = linkText.indexOf(separators[i]);
+        if (index !== -1) {
+            return true
+        }
+    }
+    return
+}
+
+function getFirstPartOfWikiLink(linkText: string) {
+    const separators = "#^|";
+    let separatorIndex = linkText.length;
+
+    for (let i = 0; i < separators.length - 1; i++) {
+        const index = linkText.indexOf(separators[i]);
+        if (index !== -1) {
+            separatorIndex = index;
+            break
+        }
+    }
+
+    const firstPart = linkText.substring(0, separatorIndex);
+    return firstPart;
 }
 
 
