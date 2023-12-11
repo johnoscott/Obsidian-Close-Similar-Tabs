@@ -34,10 +34,12 @@ export function openFileWrapper(plugin: CST) {
                     console.debug("app.workspace.getLeaf()", activeLeaf.getDisplayText())
                     const { empties, leafExists } = init(activeLeaf, args, plugin)
                     if (leafExists) {
+                        console.debug("leafExists")
                         setTimeout(() => {
                             app.workspace.setActiveLeaf(leafExists, { focus: true })
                         }, 0);
                         if (plugin.ctrl) {//on existing tab+ ctrl
+                            console.debug("ctrl")
                             console.debug("empties.length", empties.length)
                             empties.pop()?.detach()
                         } else {
@@ -45,9 +47,11 @@ export function openFileWrapper(plugin: CST) {
                                 console.debug("drag/insert")
                                 empties.pop()?.detach()
                                 // if activeLeaf pinned and drag/insert after this tab. 2 empties are added. extremely rare situation that is impossible to fix event using monly after. I can add a settings to have always 1 empty tab per active container. it will add only 1 empty max. 
-                            } else {//on existing tab
+                            } else {//on existing tab or new window
+                                console.debug("ici")
                                 if (plugin.getLeafPath(activeLeaf) !== target)//don't close actual leaf as dupli
                                     activeLeaf.detach()
+                                else return old.apply(this, args)
                             }
                         }
                     } else {
@@ -78,19 +82,18 @@ export function openFileWrapper(plugin: CST) {
                         return old.apply(this, args)
                     }
                 } else if (state?.active === false) {// draggin/insert
-                    const activeLeaf = app.workspace.getLeaf()
-                    console.debug("app.workspace.getLeaf()", activeLeaf.getDisplayText())
-                    const {empties,leafExists} =init(activeLeaf,args,plugin)
-                    setTimeout(() => {
-                        app.workspace.setActiveLeaf(leafExists, { focus: true })
-                    }, 100);
+                    const {empties,leafExists,activeEl} =init(activeLeaf,args,plugin)
                     const isMainWindow = activeLeaf?.view.containerEl.win === window;
                     if (isMainWindow) {
-                        await removeEmpty(empties?.pop()!);
+                        empties?.pop()?.detach()
                     } else {
-                        await removeEmpty(empties?.pop()!);
-                        await removeEmpty(empties?.pop()!);
+                        if(leafExists){
+                            await removeEmpty(plugin,activeEl,20);
+                        }else{
+                            return old.apply(this, args)
+                        }
                     }
+                    await activateLeaf(leafExists,0)
                 }
             };
         },
@@ -122,11 +125,26 @@ function init(activeLeaf:WorkspaceLeaf, args:any, plugin:CST){
     }
 }
 
-function removeEmpty(leaf: WorkspaceLeaf): Promise<void> {
-    return new Promise<void>((resolve) => {
+function removeEmpty(plugin: CST, activeEl: HTMLElement, timeout: number): Promise<void> {
+    return delayedPromise<void>(timeout, () => {
+        const {empties} = plugin.getLeaves(activeEl)
         console.debug("Detaching leaf");
-        leaf?.detach();
-        resolve();
+        empties?.pop()?.detach();
+    });
+}
+function activateLeaf(leaf: WorkspaceLeaf, timeout: number): Promise<void> {
+    return delayedPromise<void>(timeout, () => {
+        console.log("activating leaf")
+        app.workspace.setActiveLeaf(leaf, { focus: true })
+    });
+}
+
+function delayedPromise<T>(timeout: number, callback: () => T): Promise<T> {
+    return new Promise<T>((resolve) => {
+        setTimeout(() => {
+            const result = callback();
+            resolve(result);
+        }, timeout);
     });
 }
 
