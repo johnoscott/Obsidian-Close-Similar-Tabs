@@ -2,28 +2,19 @@ import {
 	Notice,
 	Plugin,
 	View,
-	Workspace,
 	WorkspaceLeaf,
 } from "obsidian";
-import { CSTSettingsTab } from "./settings";
 import { openLinkWrapper } from "./open-link-wrapper";
 import { openFileWrapper } from "./open-file-wrapper";
+import { CSTSettingsTab } from "./settings";
+import { Console, DEFAULT_SETTINGS } from "./constantes";
 
-declare global {
-	interface app {
-		workspace: Workspace;
-	}
-}
-
-interface CSTSettings {
-	byWindow: "current" | "all";
-	switch: boolean;
-}
-
-const DEFAULT_SETTINGS: CSTSettings = {
-	byWindow: "current",
-	switch: true,
-};
+/* Enable Console.log or debug or turn them all to debug or log */
+(global as any).DEBUG_ACTIVATED = false;      // if true, use Console instead of console
+(global as any).FORCED_DEBUG_METHOD = "debug" 
+// "" → default, 
+// "debug" → all Console.log turned into Console.debug, 
+// "log" → all Console.debug turned into Console.log
 
 export default class CST extends Plugin {
 	settings: CSTSettings;
@@ -38,13 +29,13 @@ export default class CST extends Plugin {
 
 		this.registerDomEvent(document, "keydown", (e) => {
 			if (e.key === 'Control' || e.key === 'Meta') {
-				console.debug("ctrl pressed")
+				Console.debug("ctrl pressed")
 				this.ctrl = true
 			}
 		})
 		this.registerDomEvent(document, "keyup", (e) => {
 			if (e.key === 'Control' || e.key === 'Meta') {
-				console.debug("ctrl released")
+				Console.log("ctrl released")
 				this.ctrl = false
 			}
 		})
@@ -64,7 +55,6 @@ export default class CST extends Plugin {
 			},
 		});
 	}
-
 
 	delActive() {
 		const activeLeaf = this.getActiveLeaf();
