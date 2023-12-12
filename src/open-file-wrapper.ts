@@ -1,7 +1,7 @@
 // https://github.com/aidan-gibson/obsidian-opener/blob/b80b0ea088c3ab94c571d5a1fdd0244a9adadce4/main.ts#L198
 import { around } from "monkey-around";
 import type CST from "./main";
-import { WorkspaceLeaf } from "obsidian";
+import { Workspace, WorkspaceLeaf } from "obsidian";
 import { Console } from "./constantes";
 
 
@@ -23,52 +23,59 @@ export function openFileWrapper(plugin: CST) {
 
                 Console.debug("Open File");
                 const [file, state] = args;
-                Console.debug("args", args)
+                // Console.debug("args", args)
                 Console.debug("state", state)
-                const activeLeaf = plugin.getActiveLeaf()
-                Console.debug("activeLeaf.getDisplayText() ", activeLeaf.getDisplayText())
+                const activeLeaf = plugin.getVisibleLeaf()
+                // plugin.activeLeafInfo()
                 const target = file.path
 
-                if (activeLeaf.getDisplayText() === "Files") {
+                if (activeLeaf?.getDisplayText() === "Files") {
                     Console.debug("EXPLORER")
-                    const activeLeaf = app.workspace.getLeaf()// still check what active leaf works
-                    Console.debug("app.workspace.getLeaf()", activeLeaf.getDisplayText())
-                    const { empties, leafExists } = init(activeLeaf, args, plugin)
-                    if (leafExists) {
-                        Console.debug("leafExists")
-                        setTimeout(() => {
-                            app.workspace.setActiveLeaf(leafExists, { focus: true })
-                        }, 0);
-                        if (plugin.ctrl) {//on existing tab+ ctrl
-                            Console.debug("ctrl")
-                            Console.debug("empties.length", empties.length)
-                            empties.pop()?.detach()
-                        } else {
-                            if (state?.active === false) {
-                                Console.debug("drag/insert")
-                                empties.pop()?.detach()
-                                // if activeLeaf pinned and drag/insert after this tab. 2 empties are added. extremely rare situation that is impossible to fix event using monly after. I can add a settings to have always 1 empty tab per active container. it will add only 1 empty max. 
-                            } else {//on existing tab or new window
-                                Console.debug("ici")
-                                if (plugin.getLeafPath(activeLeaf) !== target)//don't close actual leaf as dupli
-                                    activeLeaf.detach()
-                                else return old.apply(this, args)
-                            }
-                        }
-                    } else {
-                        Console.debug("return old")
-                        return old.apply(this, args)
+                    const activeLeaf = plugin.app.workspace.getMostRecentLeaf()
+                    Console.log("activeLeaf", activeLeaf?.getDisplayText())
+                    const { empties, duplis } = init(activeLeaf!, args, plugin)
+
+                    if (!duplis) {
+                        Console.debug("normal pinned")
+                        const result = old.apply(this, args)
+                        return result
                     }
 
-                } else if (state?.active === true) {
-                    const activeLeaf = app.workspace.getLeaf()
+                    Console.debug("duplis")
+                    if (plugin.ctrl) {//on existing tab+ ctrl
+                        Console.debug("ctrl")
+                        Console.debug("empties.length", empties.length)
+                        empties.pop()?.detach()
+                    } else { // drag/insert
+                        if (state?.active === false) { //ok
+                            Console.debug("drag/insert")
+                            activateLeaf(plugin, duplis, 0)
+                            empties.pop()?.detach()
+                        } else {//on existing tab or new window
+                            Console.debug("drag on existing tab or popout")
+                            if (plugin.getLeafPath(activeLeaf!) !== target && !plugin.getPinned(duplis))//don't close actual leaf as dupli
+                            {
+                                Console.log("detach")
+                                await activateLeaf(plugin, duplis, 0)
+                                activeLeaf!.detach()
+                            } else {
+                                Console.log("normal")
+                                return old.apply(this, args)
+                            }
+                            // if (plugin.getPinned(duplis)) {
+                            //         Console.log("activepinned")
+                            //     }
+                        }
+                    }
+                } else if (state?.active === true) { // NOT EXPLORER
+                    const activeLeaf = plugin.app.workspace.getLeaf()
                     Console.debug("quickswith or drag on tab header")
-                    const { empties, leafExists } = init(activeLeaf, args, plugin)
+                    const { empties, duplis } = init(activeLeaf, args, plugin)
 
-                    if (leafExists) {
-                        Console.debug("leafExists")
+                    if (duplis) {
+                        Console.debug("duplis")
                         setTimeout(() => {
-                            app.workspace.setActiveLeaf(leafExists, { focus: true })
+                            plugin.app.workspace.setActiveLeaf(duplis, { focus: true })
                         }, 0);
                         if (plugin.ctrl) {// quick switch ctrl
                             Console.debug("quick switch ctrl")
@@ -83,18 +90,29 @@ export function openFileWrapper(plugin: CST) {
                         return old.apply(this, args)
                     }
                 } else if (state?.active === false) {// draggin/insert
-                    const {empties,leafExists,activeEl} =init(activeLeaf,args,plugin)
+                    const { empties, duplis, activeEl } = init(activeLeaf, args, plugin)
                     const isMainWindow = activeLeaf?.view.containerEl.win === window;
                     if (isMainWindow) {
                         empties?.pop()?.detach()
                     } else { // drag on other window
-                        if(leafExists){
-                            await removeEmpty(plugin,activeEl,20);// back into the future ...
-                        }else{
+                        Console.log("drag on other window")
+                        if (duplis) {
+                            if (!plugin.getPinned(duplis)) {
+                                console.log("not pinned")
+                                await activateLeaf(plugin,duplis,0)
+                                await removeEmpty(plugin, activeEl, 0);// back into the future ...
+                            } else {
+                                Console.log("pinned")
+                                return old.apply(this, args)
+                            }
+                        } else {
                             return old.apply(this, args)
                         }
                     }
-                    await activateLeaf(leafExists,0)
+                    await activateLeaf(plugin, duplis, 0)
+                } else {// open window normal
+                    console.log("open window normal")
+                    return old.apply(this, args)
                 }
             };
         },
@@ -102,41 +120,47 @@ export function openFileWrapper(plugin: CST) {
     return openFilePatched;
 }
 
-function init(activeLeaf:WorkspaceLeaf, args:any, plugin:CST){
+function init(activeLeaf: WorkspaceLeaf | undefined, args: any, plugin: CST) {
     const [file, state] = args;
-    Console.debug("state", state)
     const target = file.path
     const {
-        activCursPos,
         activeEl,
         leaves,
         empties,
         isTherePin
     } = getConditions(plugin, activeLeaf)
-    const leafExists = leaves.filter(l => { return plugin.getLeafPath(l) === target })[0]
+    const duplis = leaves.filter(l => { return plugin.getLeafPath(l) === target })[0]
+    Console.debug("duplis.length", leaves.filter(l => { return plugin.getLeafPath(l) === target }).length)
     Console.debug("leaves.length", leaves.length)
     Console.debug("empties.length", empties.length)
     return {
-        activCursPos,
         activeEl,
         leaves,
         empties,
         isTherePin,
-        leafExists
+        duplis
     }
 }
 
-function removeEmpty(plugin: CST, activeEl: HTMLElement, timeout: number): Promise<void> {
+function removeEmpty(plugin: CST, activeEl: HTMLElement | null, timeout: number): Promise<void> {
     return delayedPromise<void>(timeout, () => {
-        const {empties} = plugin.getLeaves(activeEl)
+        const { empties } = plugin.getLeaves(activeEl as HTMLElement)
         Console.debug("Detaching leaf");
         empties?.pop()?.detach();
     });
 }
-function activateLeaf(leaf: WorkspaceLeaf, timeout: number): Promise<void> {
+
+// function activateTimeout(plugin: CST, leaf: WorkspaceLeaf, timeout: number) {
+//     console.log(" activateTimeout leaf", leaf.getDisplayText)
+//     setTimeout(() => {
+//         plugin.app.workspace.setActiveLeaf(leaf, { focus: true })
+//     }, timeout);
+// }
+
+function activateLeaf(plugin: CST, leaf: WorkspaceLeaf, timeout: number): Promise<void> {
     return delayedPromise<void>(timeout, () => {
         Console.debug("activating leaf")
-        app.workspace.setActiveLeaf(leaf, { focus: true })
+        plugin.app.workspace.setActiveLeaf(leaf, { focus: true })
     });
 }
 
@@ -149,10 +173,9 @@ function delayedPromise<T>(timeout: number, callback: () => T): Promise<T> {
     });
 }
 
-function getConditions(plugin: CST, activeLeaf: WorkspaceLeaf): { activeLeaf: WorkspaceLeaf, activCursPos: any, activeEl: HTMLElement, leaves: WorkspaceLeaf[], empties: WorkspaceLeaf[], isTherePin: boolean } {
-    const activCursPos = activeLeaf?.getEphemeralState();
+function getConditions(plugin: CST, activeLeaf: WorkspaceLeaf | undefined): { activeLeaf: WorkspaceLeaf | undefined, activeEl: HTMLElement, leaves: WorkspaceLeaf[], empties: WorkspaceLeaf[], isTherePin: boolean } {
     const { el: activeEl } = plugin.getLeafProperties(activeLeaf);
-    const { leaves, empties, isTherePin } = plugin.getLeaves(activeEl);
-    return { activeLeaf, activCursPos, activeEl, leaves, empties, isTherePin }
+    // const lastActiveContainer = this.app.workspace.activeTabGroup.containerEl
+    const { leaves, empties, isTherePin } = plugin.getLeaves(activeEl!);
+    return { activeLeaf, activeEl, leaves, empties, isTherePin }
 }
-

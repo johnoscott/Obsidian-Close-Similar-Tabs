@@ -44,20 +44,20 @@ export function openLinkWrapper(plugin: CST) {
                         linkPart,//→ page.md
                         sourcePath,
                     );
-                    const leafExists = leaves.filter(l => { return plugin.getLeafPath(l) === targetFile?.path })[0]
+                    const duplis = leaves.filter(l => { return plugin.getLeafPath(l) === targetFile?.path })[0]
 
                     if (activeLeaf && plugin.getPinned(activeLeaf)) { // active Leaf Pinned
                         Console.debug("getPinned")
-                        if (leafExists) {
-                            Console.debug("leafExists")
+                        if (duplis) {
+                            Console.debug("duplis")
                             if (linkPart === linktext) { // ok //link without attr 
                                 Console.debug("no attr")
                                 setTimeout(() => {
-                                    app.workspace.setActiveLeaf(leafExists, { focus: true })
+                                    app.workspace.setActiveLeaf(duplis, { focus: true })
                                 }, 0)
                             } else { // ok //link with attr
                                 Console.debug("attr")
-                                leafExists.detach()
+                                duplis.detach()
                                 return old.apply(this, args)
                             }
                         } else { // no dupli
@@ -66,20 +66,20 @@ export function openLinkWrapper(plugin: CST) {
 
                     } else {
                         Console.debug("no newLeaf")
-                        if (leafExists) { // dupli
-                            Console.debug("leafExists")
+                        if (duplis) { // dupli
+                            Console.debug("duplis")
                             if (newLeaf === false) { //without ctrl
                                 Console.debug("without ctrl")
                                 if (linkPart === linktext) { // ok link without attr 
                                     Console.debug("no attr")
                                     activeLeaf?.detach()
                                     setTimeout(() => {
-                                        app.workspace.setActiveLeaf(leafExists, { focus: true })
+                                        app.workspace.setActiveLeaf(duplis, { focus: true })
                                     }, 0)
                                     return
                                 } else { // link with attr // ok?
                                     Console.debug("attr")
-                                    leafExists.detach()
+                                    duplis.detach()
                                     return old.apply(this, args)
                                 }
                             } else { // ok // with ctrl 
@@ -87,12 +87,12 @@ export function openLinkWrapper(plugin: CST) {
                                 if (linkPart === linktext) { // ok link without attr 
                                     Console.debug("no attr")
                                     setTimeout(() => {
-                                        app.workspace.setActiveLeaf(leafExists, { focus: true })
+                                        app.workspace.setActiveLeaf(duplis, { focus: true })
                                     }, 0)
                                     return
                                 } else { // ok // link with attr 
                                     Console.debug("attr")
-                                    leafExists.detach()
+                                    duplis.detach()
                                     return old.apply(this, args)
                                 }
                             }

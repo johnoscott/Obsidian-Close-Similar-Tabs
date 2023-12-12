@@ -1,4 +1,5 @@
 import {
+	CSTSettings,
 	Notice,
 	Plugin,
 	View,
@@ -8,10 +9,12 @@ import { openLinkWrapper } from "./open-link-wrapper";
 import { openFileWrapper } from "./open-file-wrapper";
 import { CSTSettingsTab } from "./settings";
 import { Console, DEFAULT_SETTINGS } from "./constantes";
+import { getLeafWrapper } from "./get-leaf-wrapper";
+import { openPopoutLeafWrapper } from "./open-popout-leaf-wrapper";
 
 /* Enable Console.log or debug or turn them all to debug or log */
-(global as any).DEBUG_ACTIVATED = false;      // if true, use Console instead of console
-(global as any).FORCED_DEBUG_METHOD = "debug" 
+(global as any).DEBUG_ACTIVATED = true;      // if true, use Console instead of console
+(global as any).FORCED_DEBUG_METHOD = "debug"
 // "" → default, 
 // "debug" → all Console.log turned into Console.debug, 
 // "log" → all Console.debug turned into Console.log
@@ -19,7 +22,8 @@ import { Console, DEFAULT_SETTINGS } from "./constantes";
 export default class CST extends Plugin {
 	settings: CSTSettings;
 	link: boolean;
-	ctrl: boolean
+	ctrl: boolean;
+	openPopout: boolean
 
 	async onload() {
 		await this.loadSettings();
@@ -40,6 +44,8 @@ export default class CST extends Plugin {
 			}
 		})
 
+		this.register(openPopoutLeafWrapper(this));
+		this.register(getLeafWrapper(this));
 		this.register(openLinkWrapper(this));
 		this.register(openFileWrapper(this)); /* createLeafInParent */
 		this.addCommand({
@@ -56,25 +62,36 @@ export default class CST extends Plugin {
 		});
 	}
 
-	delActive() {
-		const activeLeaf = this.getActiveLeaf();
-		activeLeaf?.detach();
-	}
-
-	getActiveLeaf() {
+	getActiveLeaf(): WorkspaceLeaf | undefined {
 		return (app as any).workspace.activeLeaf;// in some conditions it remains better !
 	}
-	
-	getLeaf() {
-		return (app as any).workspace.getLeaf();
+
+	getLeaf(): WorkspaceLeaf | undefined {
+		return app.workspace.getLeaf(false);
 	}
 
-	getVisibleLeaf() {
+	getVisibleLeaf(): WorkspaceLeaf | undefined {
 		return app.workspace.getActiveViewOfType(View)?.leaf
 	}
 
+	getActiveFileView(): WorkspaceLeaf | undefined {
+		return app.workspace.getActiveViewOfType(View)?.leaf
+	}
+
+	activeLeafInfo(getLeaf = false) {
+		// const getLeafPath = this.getLeaf()?.getDisplayText()
+		const getVisibleLeafPath = this.getVisibleLeaf()?.getDisplayText()
+		const getActiveLeafPath = this.getActiveLeaf()?.getDisplayText()
+		const activeFileViewPath = this.getActiveFileView()?.getDisplayText()
+		Console.debug("getVisibleLeaf: ", getVisibleLeafPath, "  getActiveLeaf: ", getActiveLeafPath, "   getActiveFileView: ", activeFileViewPath)
+		if (getLeaf) {
+			const getLeafPath = this.getLeaf()?.getDisplayText()
+			Console.log("  getLeafPath: ", getLeafPath)
+		}
+	}
+
 	getLeafProperties(
-		leaf: WorkspaceLeaf | null,
+		leaf: WorkspaceLeaf | undefined,
 		notActive: boolean = false
 	): {
 		isMainWindow: boolean;
@@ -113,20 +130,18 @@ export default class CST extends Plugin {
 				return;
 			}
 			if (this.isEmpty(leaf)) {
-				// if (this.getPinned(leaf)) isTherePin = true
-				if (leaf.getViewState().pinned) isTherePin = true
+				if (this.getPinned(leaf)) isTherePin = true
 				empties.push(leaf)
 				return
 			}
 
-			// if (this.getPinned(leaf)) isTherePin = true
-			if (leaf.getViewState().pinned) isTherePin = true
+			if (this.getPinned(leaf)) isTherePin = true
 			leaves.push(leaf);
 		});
 		return { leaves, empties, isTherePin };
 	};
 
-	getLeafPath(leaf: WorkspaceLeaf) {
+	getLeafPath(leaf: WorkspaceLeaf | undefined): string {
 		return leaf?.getViewState().state.file
 	}
 
@@ -135,7 +150,6 @@ export default class CST extends Plugin {
 	}
 
 	isEmpty(leaf: WorkspaceLeaf | undefined) {
-		// return (leaf && leaf.view.getState.type === "empty")
 		return leaf?.view.getViewType() === "empty"
 	}
 
@@ -147,3 +161,4 @@ export default class CST extends Plugin {
 		await this.saveData(this.settings);
 	}
 }
+
