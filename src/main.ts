@@ -9,8 +9,6 @@ import { openLinkWrapper } from "./open-link-wrapper";
 import { openFileWrapper } from "./open-file-wrapper";
 import { CSTSettingsTab } from "./settings";
 import { Console, DEFAULT_SETTINGS } from "./constantes";
-import { getLeafWrapper } from "./get-leaf-wrapper";
-import { openPopoutLeafWrapper } from "./open-popout-leaf-wrapper";
 
 /* Enable Console.log or debug or turn them all to debug or log */
 (global as any).DEBUG_ACTIVATED = true;      // if true, use Console instead of console
@@ -23,7 +21,6 @@ export default class CST extends Plugin {
 	settings: CSTSettings;
 	link: boolean;
 	ctrl: boolean;
-	openPopout: boolean
 
 	async onload() {
 		await this.loadSettings();
@@ -44,8 +41,6 @@ export default class CST extends Plugin {
 			}
 		})
 
-		this.register(openPopoutLeafWrapper(this));
-		this.register(getLeafWrapper(this));
 		this.register(openLinkWrapper(this));
 		this.register(openFileWrapper(this)); /* createLeafInParent */
 		this.addCommand({
@@ -62,32 +57,28 @@ export default class CST extends Plugin {
 		});
 	}
 
-	getActiveLeaf(): WorkspaceLeaf | undefined {
-		return (app as any).workspace.activeLeaf;// in some conditions it remains better !
-	}
+	// deprecated
+	// getActiveLeaf(): WorkspaceLeaf | undefined {
+	// 	return (this.app as any).workspace.activeLeaf;// in some conditions it remains better !
+	// }
 
-	getLeaf(): WorkspaceLeaf | undefined {
-		return app.workspace.getLeaf(false);
-	}
+	// bad idea to use this, it's creating empty tabs, when no tabs
+	// getLeaf(): WorkspaceLeaf | undefined {
+	// 	return this.app.workspace.getLeaf(false);
+	// }
 
 	getVisibleLeaf(): WorkspaceLeaf | undefined {
-		return app.workspace.getActiveViewOfType(View)?.leaf
+		return this.app.workspace.getActiveViewOfType(View)?.leaf
 	}
 
 	getActiveFileView(): WorkspaceLeaf | undefined {
-		return app.workspace.getActiveViewOfType(View)?.leaf
+		return this.app.workspace.getActiveViewOfType(View)?.leaf
 	}
 
-	activeLeafInfo(getLeaf = false) {
-		// const getLeafPath = this.getLeaf()?.getDisplayText()
+	activeLeafInfo() {
 		const getVisibleLeafPath = this.getVisibleLeaf()?.getDisplayText()
-		const getActiveLeafPath = this.getActiveLeaf()?.getDisplayText()
 		const activeFileViewPath = this.getActiveFileView()?.getDisplayText()
-		Console.debug("getVisibleLeaf: ", getVisibleLeafPath, "  getActiveLeaf: ", getActiveLeafPath, "   getActiveFileView: ", activeFileViewPath)
-		if (getLeaf) {
-			const getLeafPath = this.getLeaf()?.getDisplayText()
-			Console.log("  getLeafPath: ", getLeafPath)
-		}
+		Console.debug("getVisibleLeaf: ", getVisibleLeafPath, " getActiveFileView: ", activeFileViewPath)
 	}
 
 	getLeafProperties(

@@ -1,16 +1,14 @@
-import 'obsidian'
 import { WorkspaceTabs } from "obsidian";
-// import {app} from 'obsidian'
 
 declare module 'obsidian' {
-    export interface app {
+    interface app {
         workspace: Workspace;
     }
-    export interface Workspace {
+    interface Workspace {
         activeTabGroup: WorkspaceTabs;
     }
     
-    export interface CSTSettings {
+    interface CSTSettings {
         byWindow: "current" | "all";
         switch: boolean;
     }    

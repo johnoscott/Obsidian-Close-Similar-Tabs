@@ -1,11 +1,11 @@
-// https://github.com/aidan-gibson/obsidian-opener/blob/b80b0ea088c3ab94c571d5a1fdd0244a9adadce4/main.ts#L198
+//to see? https://github.com/aidan-gibson/obsidian-opener/blob/b80b0ea088c3ab94c571d5a1fdd0244a9adadce4/main.ts#L198
 import { around } from "monkey-around";
 import type CST from "./main";
 import { Workspace, WorkspaceLeaf } from "obsidian";
 import { Console } from "./constantes";
 
 
-// todo: to pinned tab / links more tests
+// todo: what's if target is a pinned tab ? to test
 
 export function openFileWrapper(plugin: CST) {
     const openFilePatched = around(WorkspaceLeaf.prototype, {
@@ -42,29 +42,25 @@ export function openFileWrapper(plugin: CST) {
                     }
 
                     Console.debug("duplis")
+                    // I separate each situation, even if code repetition, because it's complex to cover all
                     if (plugin.ctrl) {//on existing tab+ ctrl
                         Console.debug("ctrl")
-                        Console.debug("empties.length", empties.length)
-                        empties.pop()?.detach()
+                        await activateDetach(plugin, duplis, empties, 10)
                     } else { // drag/insert
                         if (state?.active === false) { //ok
                             Console.debug("drag/insert")
-                            activateLeaf(plugin, duplis, 0)
-                            empties.pop()?.detach()
+                            await activateDetach(plugin, duplis, empties, 10)
+                            return
                         } else {//on existing tab or new window
                             Console.debug("drag on existing tab or popout")
                             if (plugin.getLeafPath(activeLeaf!) !== target && !plugin.getPinned(duplis))//don't close actual leaf as dupli
                             {
                                 Console.log("detach")
-                                await activateLeaf(plugin, duplis, 0)
-                                activeLeaf!.detach()
+                                await activateDetach(plugin, duplis, activeLeaf!, 10)
                             } else {
                                 Console.log("normal")
                                 return old.apply(this, args)
                             }
-                            // if (plugin.getPinned(duplis)) {
-                            //         Console.log("activepinned")
-                            //     }
                         }
                     }
                 } else if (state?.active === true) { // NOT EXPLORER
@@ -74,16 +70,13 @@ export function openFileWrapper(plugin: CST) {
 
                     if (duplis) {
                         Console.debug("duplis")
-                        setTimeout(() => {
-                            plugin.app.workspace.setActiveLeaf(duplis, { focus: true })
-                        }, 0);
                         if (plugin.ctrl) {// quick switch ctrl
                             Console.debug("quick switch ctrl")
-                            empties.pop()?.detach()
+                            await activateDetach(plugin, duplis, empties, 10)
                         }
                         else {// quick switch
                             Console.debug("quick switch or drag header or today note")
-                            if (plugin.getLeafPath(activeLeaf) !== target) activeLeaf.detach()
+                            if (plugin.getLeafPath(activeLeaf) !== target) await activateDetach(plugin, duplis, activeLeaf, 10)
                         }
                     } else { // today note no existing tab
                         Console.debug("// today note no existing tab")
@@ -93,13 +86,15 @@ export function openFileWrapper(plugin: CST) {
                     const { empties, duplis, activeEl } = init(activeLeaf, args, plugin)
                     const isMainWindow = activeLeaf?.view.containerEl.win === window;
                     if (isMainWindow) {
+                        console.log("marqueur")
                         empties?.pop()?.detach()
+                        await activateLeaf(plugin, duplis, 0)
                     } else { // drag on other window
                         Console.log("drag on other window")
                         if (duplis) {
                             if (!plugin.getPinned(duplis)) {
                                 console.log("not pinned")
-                                await activateLeaf(plugin,duplis,0)
+                                await activateLeaf(plugin, duplis, 0)
                                 await removeEmpty(plugin, activeEl, 0);// back into the future ...
                             } else {
                                 Console.log("pinned")
@@ -109,7 +104,7 @@ export function openFileWrapper(plugin: CST) {
                             return old.apply(this, args)
                         }
                     }
-                    await activateLeaf(plugin, duplis, 0)
+                    // await activateLeaf(plugin, duplis, 0)
                 } else {// open window normal
                     console.log("open window normal")
                     return old.apply(this, args)
@@ -150,16 +145,17 @@ function removeEmpty(plugin: CST, activeEl: HTMLElement | null, timeout: number)
     });
 }
 
-// function activateTimeout(plugin: CST, leaf: WorkspaceLeaf, timeout: number) {
-//     console.log(" activateTimeout leaf", leaf.getDisplayText)
-//     setTimeout(() => {
-//         plugin.app.workspace.setActiveLeaf(leaf, { focus: true })
-//     }, timeout);
-// }
+async function activateDetach(plugin: CST, leafToActivate: WorkspaceLeaf, toDetach: WorkspaceLeaf[] | WorkspaceLeaf, timeout: number) {
+    await activateLeaf(plugin, leafToActivate, timeout)
+    if (Array.isArray(toDetach!)) toDetach.pop()?.detach()
+    else toDetach.detach()
+}
 
+// I do a promise with a timer could avoid bugs
 function activateLeaf(plugin: CST, leaf: WorkspaceLeaf, timeout: number): Promise<void> {
     return delayedPromise<void>(timeout, () => {
         Console.debug("activating leaf")
+        console.log("leaf.getDisplayText()", leaf.getDisplayText())
         plugin.app.workspace.setActiveLeaf(leaf, { focus: true })
     });
 }
@@ -175,7 +171,14 @@ function delayedPromise<T>(timeout: number, callback: () => T): Promise<T> {
 
 function getConditions(plugin: CST, activeLeaf: WorkspaceLeaf | undefined): { activeLeaf: WorkspaceLeaf | undefined, activeEl: HTMLElement, leaves: WorkspaceLeaf[], empties: WorkspaceLeaf[], isTherePin: boolean } {
     const { el: activeEl } = plugin.getLeafProperties(activeLeaf);
-    // const lastActiveContainer = this.app.workspace.activeTabGroup.containerEl
+    // const lastActiveContainer = this.app.workspace.activeTabGroup.containerEl // not useful when clicking explorer,  because it gives explorer container and not the rootsplt before...getMostRecentLeaf at the rescue!
     const { leaves, empties, isTherePin } = plugin.getLeaves(activeEl!);
     return { activeLeaf, activeEl, leaves, empties, isTherePin }
 }
+
+// function activateTimeout(plugin: CST, leaf: WorkspaceLeaf, timeout: number) {
+//     console.log(" activateTimeout leaf", leaf.getDisplayText)
+//     setTimeout(() => {
+//         plugin.app.workspace.setActiveLeaf(leaf, { focus: true })
+//     }, timeout);
+// }
