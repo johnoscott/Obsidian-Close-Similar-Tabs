@@ -1,7 +1,7 @@
 //to see? https://github.com/aidan-gibson/obsidian-opener/blob/b80b0ea088c3ab94c571d5a1fdd0244a9adadce4/main.ts#L198
 import { around } from "monkey-around";
 import type CST from "./main";
-import { Workspace, WorkspaceLeaf } from "obsidian";
+import { WorkspaceLeaf } from "obsidian";
 import { Console } from "./constantes";
 
 
@@ -66,34 +66,40 @@ export function openFileWrapper(plugin: CST) {
                 } else if (state?.active === true) { // NOT EXPLORER
                     const activeLeaf = plugin.app.workspace.getLeaf()
                     Console.debug("quickswith or drag on tab header")
-                    const { empties, duplis } = init(activeLeaf, args, plugin)
+                    const { empties, duplis, activeEl } = init(activeLeaf, args, plugin)
 
                     if (duplis) {
                         Console.debug("duplis")
                         if (plugin.ctrl) {// quick switch ctrl
                             Console.debug("quick switch ctrl")
                             await activateDetach(plugin, duplis, empties, 10)
+                            await removeEmpty(plugin, activeEl, 0)
                         }
                         else {// quick switch
                             Console.debug("quick switch or drag header or today note")
                             if (plugin.getLeafPath(activeLeaf) !== target) await activateDetach(plugin, duplis, activeLeaf, 10)
                         }
-                    } else { // today note no existing tab
-                        Console.debug("// today note no existing tab")
-                        return old.apply(this, args)
+                    } else { // today note no existing tab. quick switcher pinned tab
+                        Console.debug("// today note no existing tab. quick switcher pinned tab")
+                        const mostRecentLeaf = plugin.app.workspace.getMostRecentLeaf()
+                        if (plugin.getPinned(mostRecentLeaf!)) {
+                            await removeEmpty(plugin, activeEl, 0)
+                        }
+                        old.apply(this, args)
+                        // return result
                     }
                 } else if (state?.active === false) {// draggin/insert
                     const { empties, duplis, activeEl } = init(activeLeaf, args, plugin)
                     const isMainWindow = activeLeaf?.view.containerEl.win === window;
                     if (isMainWindow) {
-                        console.log("marqueur")
+                        Console.log("marqueur")
                         empties?.pop()?.detach()
                         await activateLeaf(plugin, duplis, 0)
                     } else { // drag on other window
                         Console.log("drag on other window")
                         if (duplis) {
                             if (!plugin.getPinned(duplis)) {
-                                console.log("not pinned")
+                                Console.log("not pinned")
                                 await activateLeaf(plugin, duplis, 0)
                                 await removeEmpty(plugin, activeEl, 0);// back into the future ...
                             } else {
@@ -106,7 +112,7 @@ export function openFileWrapper(plugin: CST) {
                     }
                     // await activateLeaf(plugin, duplis, 0)
                 } else {// open window normal
-                    console.log("open window normal")
+                    Console.log("open window normal")
                     return old.apply(this, args)
                 }
             };
@@ -155,7 +161,6 @@ async function activateDetach(plugin: CST, leafToActivate: WorkspaceLeaf, toDeta
 function activateLeaf(plugin: CST, leaf: WorkspaceLeaf, timeout: number): Promise<void> {
     return delayedPromise<void>(timeout, () => {
         Console.debug("activating leaf")
-        console.log("leaf.getDisplayText()", leaf.getDisplayText())
         plugin.app.workspace.setActiveLeaf(leaf, { focus: true })
     });
 }
@@ -177,7 +182,7 @@ function getConditions(plugin: CST, activeLeaf: WorkspaceLeaf | undefined): { ac
 }
 
 // function activateTimeout(plugin: CST, leaf: WorkspaceLeaf, timeout: number) {
-//     console.log(" activateTimeout leaf", leaf.getDisplayText)
+//     Console.log(" activateTimeout leaf", leaf.getDisplayText)
 //     setTimeout(() => {
 //         plugin.app.workspace.setActiveLeaf(leaf, { focus: true })
 //     }, timeout);
