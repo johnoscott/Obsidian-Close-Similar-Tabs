@@ -9,8 +9,9 @@ Notice it's working in all situations, when clicking on a link or when opening a
 - "by window": find duplicates in each window (default mode).  
 - "All windows": find duplicates in all windows. 
   
-1 command:      
+2 commands:      
 - "Switch" to temporary enable/disable Close Similar Tabs.
+- "Undo close tab" to make the last closed tab reappear. (it seems that this obsidian command was removed from the command palette)
 
 N.B: More options are getting back soon as close empty tabs, be notified and  pinned tabs.
 

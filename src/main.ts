@@ -55,6 +55,13 @@ export default class CST extends Plugin {
 				await this.saveSettings();
 			},
 		});
+		this.addCommand({
+			id: "reopen-last-tab",
+			name: "Reopen last tab",
+			callback: async () => {
+				(this.app as any).commands.executeCommandById("workspace:undo-close-pane")
+			},
+		});
 	}
 
 	// deprecated
