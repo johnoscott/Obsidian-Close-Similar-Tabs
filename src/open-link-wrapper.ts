@@ -23,9 +23,9 @@ export function openLinkWrapper(plugin: CST) {
                 Console.debug("getVisibleLeaf", activeLeaf?.getDisplayText())
 
                 if ( // ok // to same page
-                    linktext?.includes(
-                        sourcePath.split(".").slice(0, -1).join(".")
-                    )
+                    linktext.includes(
+                        sourcePath.split(".").slice(0, -1).join(".") 
+                    ) || linktext.trim().startsWith("#")
                 ) {
                     Console.debug("to same page") // ctrl or not
                     return old.apply(this, [
