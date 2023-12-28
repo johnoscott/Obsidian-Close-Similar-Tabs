@@ -43,8 +43,8 @@ export function openFileWrapper(plugin: CST) {
 
                     Console.debug("duplis")
                     // I separate each situation, even if code repetition, because it's complex to cover all
-                    if (plugin.ctrl) {//on existing tab+ ctrl
-                        Console.debug("ctrl")
+                    if (plugin.ctrl || plugin.middleClick) {//on existing tab+ ctrl
+                        Console.debug("ctrl || middle click")
                         await activateDetach(plugin, duplis, empties, 10)
                     } else { // drag/insert
                         if (state?.active === false) { //ok
@@ -70,7 +70,7 @@ export function openFileWrapper(plugin: CST) {
 
                     if (duplis) {
                         Console.debug("duplis")
-                        if (plugin.ctrl) {// quick switch ctrl
+                        if (plugin.ctrl || plugin.middleClick) {// quick switch ctrl
                             Console.debug("quick switch ctrl")
                             await activateDetach(plugin, duplis, empties, 10)
                             await removeEmpty(plugin, activeEl, 0)

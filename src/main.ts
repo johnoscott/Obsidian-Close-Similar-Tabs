@@ -21,6 +21,7 @@ export default class CST extends Plugin {
 	settings: CSTSettings;
 	link: boolean;
 	ctrl: boolean;
+	middleClick: boolean;
 
 	async onload() {
 		await this.loadSettings();
@@ -40,6 +41,23 @@ export default class CST extends Plugin {
 				this.ctrl = false
 			}
 		})
+		// this.registerDomEvent(document, "click", (e) => {
+		// 	if (e.button === 1) {
+		// 		Console.debug("middleClick pressed")
+		// 		this.middleClick = true
+		// 	}
+		// })
+		this.registerDomEvent(document, 'mouseup', (e) => {// strangly middle click on detected when released
+			if (e.button === 1) {
+				Console.debug("middleClick released On")
+				this.middleClick = true
+				setTimeout(() => {
+					Console.debug("middleClick released off")
+					this.middleClick = false
+				}, 200);
+			}
+		});
+
 
 		this.register(openLinkWrapper(this));
 		this.register(openFileWrapper(this)); /* createLeafInParent */
@@ -53,13 +71,6 @@ export default class CST extends Plugin {
 					: "Close similar tabs OFF";
 				new Notice(`${message}`);
 				await this.saveSettings();
-			},
-		});
-		this.addCommand({
-			id: "reopen-last-tab",
-			name: "Reopen last tab / Undo close tab",
-			callback: async () => {
-				(this.app as any).commands.executeCommandById("workspace:undo-close-pane")
 			},
 		});
 	}
