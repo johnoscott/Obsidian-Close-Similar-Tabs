@@ -11,7 +11,7 @@ import { CSTSettingsTab } from "./settings";
 import { Console, DEFAULT_SETTINGS } from "./constantes";
 
 /* Enable Console.log or debug or turn them all to debug or log */
-(global as any).DEBUG_ACTIVATED = true;      // if true, use Console instead of console
+(global as any).DEBUG_ACTIVATED = false;      // if true, use Console instead of console
 (global as any).FORCED_DEBUG_METHOD = "debug"
 // "" → default, 
 // "debug" → all Console.log turned into Console.debug, 
@@ -41,13 +41,7 @@ export default class CST extends Plugin {
 				this.ctrl = false
 			}
 		})
-		// this.registerDomEvent(document, "click", (e) => {
-		// 	if (e.button === 1) {
-		// 		Console.debug("middleClick pressed")
-		// 		this.middleClick = true
-		// 	}
-		// })
-		this.registerDomEvent(document, 'mouseup', (e) => {// strangly middle click on detected when released
+		this.registerDomEvent(document, 'mouseup', (e) => {// strangly middle click detected when released
 			if (e.button === 1) {
 				Console.debug("middleClick released On")
 				this.middleClick = true

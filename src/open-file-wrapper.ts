@@ -92,6 +92,11 @@ export function openFileWrapper(plugin: CST) {
                     const { empties, duplis, activeEl } = init(activeLeaf, args, plugin)
                     const isMainWindow = activeLeaf?.view.containerEl.win === window;
                     if (isMainWindow) {
+                        if (state.state.mode==="preview") {
+                            Console.log("Hover editor")
+                            return old.apply(this, args)
+                        }
+                        Console.log("isMainWindow")
                         Console.log("marqueur")
                         empties?.pop()?.detach()
                         await activateLeaf(plugin, duplis, 0)
