@@ -2,7 +2,9 @@ import * as fs from 'fs/promises';
 import * as fsExtra from 'fs-extra'
 import * as readline from 'readline';
 import * as path from 'path';
-import { exec } from 'child_process'
+import { exec } from 'child_process';
+import * as dotenv from 'dotenv';
+
 
 
 export function createPathandCopy(rl: readline.Interface, targetPath: string) {
@@ -12,7 +14,7 @@ export function createPathandCopy(rl: readline.Interface, targetPath: string) {
                 // no \ or \\ no last \
                 let formattedPath = newPath.trim().replace(/\\/g, '/').replace(/\/{2,}/g, '/').replace(/\/$/, '');
                 formattedPath = path.join(formattedPath, '.obsidian', 'plugins', '$ID')
-                await updateTargetPathInEnv(formattedPath);
+                await updateEnvVariable("TARGET_PATH", formattedPath);
                 targetPath = formattedPath;
                 await copyFilesToTargetPath(targetPath);
                 console.log('Copy successful!');
@@ -29,6 +31,28 @@ export function createPathandCopy(rl: readline.Interface, targetPath: string) {
 // Update the target path in the .env file
 export async function updateTargetPathInEnv(newPath: string) {
     await fs.writeFile('.env', `TARGET_PATH=${newPath}`);
+}
+
+export async function updateEnvVariable(variableName: string, newValue: any) {
+    try {
+        // Load environment variables from the .env file
+        const envConfig = dotenv.parse(await fs.readFile('.env'));
+
+        // Modify the value of the specified variable
+        envConfig[variableName] = newValue;
+
+        // Generate a new string with the updated variables
+        const updatedEnv = Object.keys(envConfig)
+            .map(key => `${key}=${envConfig[key]}`)
+            .join('\n');
+
+        // Write the new string to the .env file
+        await fs.writeFile('.env', updatedEnv);
+
+        console.log(`${variableName} updated to ${newValue}`);
+    } catch (error) {
+        console.error(`error updating value ${variableName}:`, error);
+    }
 }
 
 export function getEnv(name: string) {
@@ -48,7 +72,7 @@ async function isVault(_path: string) {
 }
 
 export async function isVaultPathValid(vaultPath: string) {
-    if (vaultPath.includes(".obsidian")){
+    if (vaultPath.includes(".obsidian")) {
         vaultPath = vaultPath.split(".obsidian")[0];
     }
     return vaultPath && (await isValidPath(vaultPath)) && (await isVault(vaultPath));
@@ -70,6 +94,7 @@ export async function checkManifest() {
 
 // Copy the main.js and manifest.json files to the target path
 async function copyFilesToTargetPath(targetPath: string) {
+    console.log("Copying files to the target path...");
     const cwd = process.cwd();
     const idMatch = (await fs.readFile(path.join(cwd, 'manifest.json'), 'utf8')).match(/"id":\s*"(.*?)"/);
     const id = idMatch ? idMatch[1] : '';
