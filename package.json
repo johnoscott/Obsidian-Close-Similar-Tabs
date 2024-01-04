@@ -1,11 +1,11 @@
 {
 	"name": "close-similar-tabs",
-	"version": "2.3.3",
+	"version": "2.3.4",
 	"description": "Avoid to have a file opened several times in your tabs. (+setting: by window or everywhere)",
 	"main": "src/main.js",
 	"scripts": {
-		"dev": "tsx esbuild.config.mts",
-		"build": "tsc -noEmit -skipLibCheck && tsx esbuild.config.mts production",
+		"dev": "node esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production",
 		"start": "tsx scripts/start.mjs",
 		"version": "tsx scripts/update-version.mts",
 		"acp": "tsx scripts/acp.mts",
