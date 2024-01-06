@@ -10,7 +10,6 @@ export class CSTSettingsTab extends PluginSettingTab {
 	async display(): Promise<void> {
 		const { containerEl } = this;
 		containerEl.empty();
-		containerEl.createEl("h1", { text: "Close Similar Tabs" });
 		const content = `Repository: 🌴 [1C0D/Obsidian-Close-Similar-Tabs](https://github.com/1C0D/Obsidian-Close-Similar-Tabs) 🌴
 		</p>
 		`;
@@ -22,12 +21,6 @@ export class CSTSettingsTab extends PluginSettingTab {
 			"",
 			this.plugin,
 		);
-
-		// containerEl.createDiv("", (el: HTMLDivElement) => {
-		// 	el.innerHTML = content;
-		// });
-		// const div = containerEl.createDiv();
-		// div.outerHTML = content
 
 		new Setting(containerEl)
 			.setName("Quick switch")

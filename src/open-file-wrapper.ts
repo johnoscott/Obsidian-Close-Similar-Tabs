@@ -2,8 +2,7 @@
 import { around } from "monkey-around";
 import type CST from "./main";
 import { WorkspaceLeaf } from "obsidian";
-import { Console } from "./constantes";
-
+import { Console } from "./Console";
 
 // todo: what's if target is a pinned tab ? to test
 
@@ -12,11 +11,6 @@ export function openFileWrapper(plugin: CST) {
         //@ts-ignore
         openFile(old) {
             return async function (...args) {
-                // Console.debug("first args:", ...args);// file + object: active, state { mode: 'source', file: '2023-12-06.md' }
-                /* state → {active: false}
-                active: true when drag&drop on a tab,
-                active: false when drag/insert a new tab
-                undefined no drag */
                 if (!plugin.settings.switch || plugin.link) {
                     return old.apply(this, args);
                 }

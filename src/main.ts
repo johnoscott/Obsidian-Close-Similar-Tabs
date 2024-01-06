@@ -8,14 +8,8 @@ import {
 import { openLinkWrapper } from "./open-link-wrapper";
 import { openFileWrapper } from "./open-file-wrapper";
 import { CSTSettingsTab } from "./settings";
-import { Console, DEFAULT_SETTINGS } from "./constantes";
-
-/* Enable Console.log or debug or turn them all to debug or log */
-(global as any).DEBUG_ACTIVATED = false;      // if true, use Console instead of console
-(global as any).FORCED_DEBUG_METHOD = "debug"
-// "" → default, 
-// "debug" → all Console.log turned into Console.debug, 
-// "log" → all Console.debug turned into Console.log
+import {  DEFAULT_SETTINGS } from "./constantes";
+import { Console } from "./Console";
 
 export default class CST extends Plugin {
 	settings: CSTSettings;

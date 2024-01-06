@@ -1,7 +1,7 @@
 import { around } from "monkey-around";
 import CST from "./main";
 import { Workspace } from "obsidian";
-import { Console } from "./constantes";
+import { Console } from "./Console";
 
 export function openLinkWrapper(plugin: CST) {
     const openLinkPatched = around(Workspace.prototype, {
