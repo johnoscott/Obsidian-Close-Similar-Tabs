@@ -4,8 +4,14 @@
 	"description": "Avoid to have a file opened several times in your tabs. (+setting: by window or everywhere)",
 	"main": "main.js",
 	"scripts": {
-		"dev": "node esbuild.config.mjs",
-		"build": "tsc -noEmit -skipLibCheck && node esbuild.config.mjs production"
+		"dev": "tsx esbuild.config.mjs",
+		"build": "tsc -noEmit -skipLibCheck && tsx esbuild.config.mjs production",
+		"version": "tsx scripts/update-version.mts",
+		"start": "npm i && tsx scripts/start.mjs",
+		"acp": "tsx scripts/acp.mts",
+		"bacp": "tsx scripts/acp.mts -b",
+		"release": "tsx scripts/release.mts",
+		"test": "tsx scripts/test-plugin.mts"
 	},
 	"keywords": [],
 	"author": "1C0D",
@@ -19,6 +25,7 @@
 		"monkey-around": "^2.3.0",
 		"obsidian": "latest",
 		"tslib": "2.4.0",
+		"tsx": "^4.7.0",
 		"typescript": "4.7.4"
 	}
 }
