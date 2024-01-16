@@ -1,9 +1,9 @@
-// import * as dotenv from 'dotenv';
-// dotenv.config();
+import * as dotenv from 'dotenv';
+dotenv.config();
 
-// let DEBUG = process.env.DEBUG || "true"
+let DEBUG = process.env.DEBUG || "true"
 
-let DEBUG = "false";
+// let DEBUG = "false";
 
 export const Console = {
     debug: (...args: any[]) => {
