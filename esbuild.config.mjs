@@ -37,10 +37,7 @@ const context = await esbuild.context({
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
-	outfile: "main.js",
-	define: {
-		'process.env.DEBUG': JSON.stringify(prod ? "false" : "true")
-	},
+	outfile: "main.js"
 });
 
 if (prod) {
