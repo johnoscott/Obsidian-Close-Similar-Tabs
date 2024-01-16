@@ -1,9 +1,13 @@
 // import * as dotenv from 'dotenv';
 // dotenv.config();
 
-// let DEBUG = process.env.DEBUG || "true"
+import { Platform } from "obsidian";
 
 let DEBUG = "false";
+
+if (Platform.isDesktopApp){
+    DEBUG = process.env.DEBUG || "true"
+}
 
 export const Console = {
     debug: (...args: any[]) => {

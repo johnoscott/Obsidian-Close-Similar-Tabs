@@ -18,6 +18,7 @@ export default class CST extends Plugin {
 	middleClick: boolean;
 
 	async onload() {
+		Console.log("CST onload");
 		await this.loadSettings();
 		await this.saveSettings();
 		this.addSettingTab(new CSTSettingsTab(this.app, this));
