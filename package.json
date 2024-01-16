@@ -10,6 +10,7 @@
 		"start": "npm i && tsx scripts/start.mjs",
 		"acp": "tsx scripts/acp.mts",
 		"bacp": "tsx scripts/acp.mts -b",
+		"release": "tsx scripts/release.mts",
 		"test": "tsx scripts/test-plugin.mts"
 	},
 	"keywords": [],
