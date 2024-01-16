@@ -1,10 +1,7 @@
-//to see? https://github.com/aidan-gibson/obsidian-opener/blob/b80b0ea088c3ab94c571d5a1fdd0244a9adadce4/main.ts#L198
 import { around } from "monkey-around";
 import type CST from "./main";
 import { WorkspaceLeaf } from "obsidian";
 import { Console } from "./Console";
-
-// todo: what's if target is a pinned tab ? to test
 
 export function openFileWrapper(plugin: CST) {
     const openFilePatched = around(WorkspaceLeaf.prototype, {
@@ -175,14 +172,7 @@ function delayedPromise<T>(timeout: number, callback: () => T): Promise<T> {
 
 function getConditions(plugin: CST, activeLeaf: WorkspaceLeaf | undefined): { activeLeaf: WorkspaceLeaf | undefined, activeEl: HTMLElement, leaves: WorkspaceLeaf[], empties: WorkspaceLeaf[], isTherePin: boolean } {
     const { el: activeEl } = plugin.getLeafProperties(activeLeaf);
-    // const lastActiveContainer = this.app.workspace.activeTabGroup.containerEl // not useful when clicking explorer,  because it gives explorer container and not the rootsplt before...getMostRecentLeaf at the rescue!
     const { leaves, empties, isTherePin } = plugin.getLeaves(activeEl!);
     return { activeLeaf, activeEl, leaves, empties, isTherePin }
 }
 
-// function activateTimeout(plugin: CST, leaf: WorkspaceLeaf, timeout: number) {
-//     Console.log(" activateTimeout leaf", leaf.getDisplayText)
-//     setTimeout(() => {
-//         plugin.app.workspace.setActiveLeaf(leaf, { focus: true })
-//     }, timeout);
-// }

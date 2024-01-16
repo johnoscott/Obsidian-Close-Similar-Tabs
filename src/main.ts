@@ -18,7 +18,6 @@ export default class CST extends Plugin {
 	middleClick: boolean;
 
 	async onload() {
-		Console.log("CST onload");
 		await this.loadSettings();
 		await this.saveSettings();
 		this.addSettingTab(new CSTSettingsTab(this.app, this));
@@ -63,16 +62,6 @@ export default class CST extends Plugin {
 			},
 		});
 	}
-
-	// deprecated
-	// getActiveLeaf(): WorkspaceLeaf | undefined {
-	// 	return (this.app as any).workspace.activeLeaf;// in some conditions it remains better !
-	// }
-
-	// bad idea to use this, it's creating empty tabs, when no tabs
-	// getLeaf(): WorkspaceLeaf | undefined {
-	// 	return this.app.workspace.getLeaf(false);
-	// }
 
 	getVisibleLeaf(): WorkspaceLeaf | undefined {
 		return this.app.workspace.getActiveViewOfType(View)?.leaf
