@@ -29,6 +29,8 @@ async function createTag() {
         let tagMessage = `${message}`;
         const messages = tagMessage.split('\\n');
         const toShow = tagMessage.replace(/\\n/g, '\n');
+        // git tag - a <tag_name> -m "Description of the tag"
+        // for several lines ... -m "text" -m "text1"...
         tagMessage = messages.map(message => `-m "${message}"`).join(' ');
         execSync(`git tag -a ${tag} ${tagMessage}`);
         execSync(`git push origin ${tag}`);

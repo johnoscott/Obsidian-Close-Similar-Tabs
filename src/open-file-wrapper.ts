@@ -117,7 +117,7 @@ export function openFileWrapper(plugin: CST) {
     return openFilePatched;
 }
 
-function init(activeLeaf: WorkspaceLeaf | undefined, args: any, plugin: CST) {
+function init(activeLeaf: WorkspaceLeaf | null, args: any, plugin: CST) {
     const [file, state] = args;
     const target = file.path
     const {
@@ -170,7 +170,7 @@ function delayedPromise<T>(timeout: number, callback: () => T): Promise<T> {
     });
 }
 
-function getConditions(plugin: CST, activeLeaf: WorkspaceLeaf | undefined): { activeLeaf: WorkspaceLeaf | undefined, activeEl: HTMLElement, leaves: WorkspaceLeaf[], empties: WorkspaceLeaf[], isTherePin: boolean } {
+function getConditions(plugin: CST, activeLeaf: WorkspaceLeaf | null): { activeLeaf: WorkspaceLeaf | null, activeEl: HTMLElement, leaves: WorkspaceLeaf[], empties: WorkspaceLeaf[], isTherePin: boolean } {
     const { el: activeEl } = plugin.getLeafProperties(activeLeaf);
     const { leaves, empties, isTherePin } = plugin.getLeaves(activeEl!);
     return { activeLeaf, activeEl, leaves, empties, isTherePin }

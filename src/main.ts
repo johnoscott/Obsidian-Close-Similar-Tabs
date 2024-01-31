@@ -8,7 +8,7 @@ import {
 import { openLinkWrapper } from "./open-link-wrapper";
 import { openFileWrapper } from "./open-file-wrapper";
 import { CSTSettingsTab } from "./settings";
-import {  DEFAULT_SETTINGS } from "./constantes";
+import { DEFAULT_SETTINGS } from "./constantes";
 import { Console } from "./Console";
 
 export default class CST extends Plugin {
@@ -63,12 +63,12 @@ export default class CST extends Plugin {
 		});
 	}
 
-	getVisibleLeaf(): WorkspaceLeaf | undefined {
-		return this.app.workspace.getActiveViewOfType(View)?.leaf
+	getVisibleLeaf(): WorkspaceLeaf | null {
+		return this.app.workspace.getActiveViewOfType(View)?.leaf || null
 	}
 
-	getActiveFileView(): WorkspaceLeaf | undefined {
-		return this.app.workspace.getActiveViewOfType(View)?.leaf
+	getActiveFileView(): WorkspaceLeaf | null {
+		return this.app.workspace.getActiveViewOfType(View)?.leaf || null
 	}
 
 	activeLeafInfo() {
@@ -78,7 +78,7 @@ export default class CST extends Plugin {
 	}
 
 	getLeafProperties(
-		leaf: WorkspaceLeaf | undefined,
+		leaf: WorkspaceLeaf | null,
 		notActive: boolean = false
 	): {
 		isMainWindow: boolean;
@@ -102,6 +102,7 @@ export default class CST extends Plugin {
 		const leaves: WorkspaceLeaf[] = [];
 		const empties: WorkspaceLeaf[] = [];
 		let isTherePin = false
+
 		workspace.iterateAllLeaves((leaf: WorkspaceLeaf) => {
 			const {
 				isMainWindow: isMainWindowDupli,
@@ -111,7 +112,9 @@ export default class CST extends Plugin {
 			} = this.getLeafProperties(leaf, true);
 			if (
 				(isMainWindowDupli && !rootSplitDupli) || //not sidebars
-				(isSameWindowDupli && activeEl != dupliEl) || //split window
+				(isSameWindowDupli && activeEl != dupliEl
+					// && !activeEl.classList.contains("mod-top-left-space")
+				) || //split window
 				(!isSameWindowDupli && this.settings.byWindow === "current") //not same window
 			) {
 				return;
@@ -128,7 +131,7 @@ export default class CST extends Plugin {
 		return { leaves, empties, isTherePin };
 	};
 
-	getLeafPath(leaf: WorkspaceLeaf | undefined): string {
+	getLeafPath(leaf: WorkspaceLeaf | null): string {
 		return leaf?.getViewState().state.file
 	}
 
@@ -136,7 +139,7 @@ export default class CST extends Plugin {
 		return leaf?.getViewState().pinned;
 	}
 
-	isEmpty(leaf: WorkspaceLeaf | undefined) {
+	isEmpty(leaf: WorkspaceLeaf | null) {
 		return leaf?.view.getViewType() === "empty"
 	}
 

@@ -4,7 +4,7 @@ let DEBUG = "false";
 
 if (Platform.isDesktopApp){
     require('dotenv').config();
-    DEBUG = process.env.DEBUG || "true"
+    DEBUG = process.env.DEBUG ?? "true";
 }
 
 export const Console = {
