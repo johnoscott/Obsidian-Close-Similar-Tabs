@@ -1,1 +1,1 @@
-fix ctrl omnisearch
+fix dataviewjs
