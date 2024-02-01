@@ -14,9 +14,10 @@ export function openFileWrapper(plugin: CST) {
 
                 Console.debug("Open File");
                 const [file, state] = args;
-                // Console.debug("args", args)
+                Console.debug("args", args)
                 Console.debug("state", state)
                 const activeLeaf = plugin.getVisibleLeaf()
+                Console.debug("getVisibleLeaf", activeLeaf?.getDisplayText())
                 // plugin.activeLeafInfo()
                 const target = file.path
 
@@ -54,9 +55,9 @@ export function openFileWrapper(plugin: CST) {
                             }
                         }
                     }
-                } else if (state?.active === true) { // NOT EXPLORER
+                } else if (state?.active === true || state?.eState) { // NOT EXPLORER
                     const activeLeaf = plugin.app.workspace.getLeaf()
-                    Console.debug("quickswith or drag on tab header")
+                    Console.debug("quickswitch or drag on tab header")
                     const { empties, duplis, activeEl } = init(activeLeaf, args, plugin)
 
                     if (duplis) {
@@ -69,6 +70,7 @@ export function openFileWrapper(plugin: CST) {
                         else {// quick switch
                             Console.debug("quick switch or drag header or today note")
                             if (plugin.getLeafPath(activeLeaf) !== target) await activateDetach(plugin, duplis, activeLeaf, 10)
+                            if (state?.eState) await removeEmpty(plugin, activeEl, 0)
                         }
                     } else { // today note no existing tab. quick switcher pinned tab
                         Console.debug("// today note no existing tab. quick switcher pinned tab")
