@@ -24,7 +24,6 @@ export function openLinkWrapper(plugin: CST) {
                 Console.debug("OpenViewState", OpenViewState)
                 let activeLeaf = plugin.getVisibleLeaf()
                 Console.debug("getVisibleLeaf", activeLeaf?.getDisplayText())
-                console.log('OpenViewState?.hasOwnProperty("state")', OpenViewState?.hasOwnProperty("state"))
 
                 if ( // ok // to same page
                     ((linktext.includes(
