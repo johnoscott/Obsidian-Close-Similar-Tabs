@@ -1,6 +1,6 @@
 {
 	"name": "close-similar-tabs",
-	"version": "3.1.3",
+	"version": "3.1.4",
 	"description": "Avoid to have a file opened several times in your tabs. (+setting: by window or everywhere)",
 	"main": "main.js",
 	"scripts": {
