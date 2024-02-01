@@ -24,11 +24,12 @@ export function openLinkWrapper(plugin: CST) {
                 Console.debug("OpenViewState", OpenViewState)
                 let activeLeaf = plugin.getVisibleLeaf()
                 Console.debug("getVisibleLeaf", activeLeaf?.getDisplayText())
+                console.log('OpenViewState?.hasOwnProperty("state")', OpenViewState?.hasOwnProperty("state"))
 
                 if ( // ok // to same page
                     ((linktext.includes(
                         sourcePath.split(".").slice(0, -1).join(".")
-                    ) || linktext.trim().startsWith("#")) && newLeaf !== "tab") && !plugin.ctrl
+                    ) || linktext.trim().startsWith("#")) && newLeaf !== "tab") && !plugin.ctrl && OpenViewState === undefined
                 ) {
                     Console.debug("to same page") // ctrl or not
                     return old.apply(this, [
@@ -37,7 +38,6 @@ export function openLinkWrapper(plugin: CST) {
                         newLeaf = false,// don't open new tab
                         OpenViewState,
                     ]);
-
                 } else { // to other page
                     Console.debug("to other page")
                     if (activeLeaf?.getDisplayText() === "Files") {
