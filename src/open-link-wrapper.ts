@@ -26,9 +26,9 @@ export function openLinkWrapper(plugin: CST) {
                 Console.debug("getVisibleLeaf", activeLeaf?.getDisplayText())
 
                 if ( // ok // to same page
-                    (linktext.includes(
+                    ((linktext.includes(
                         sourcePath.split(".").slice(0, -1).join(".")
-                    ) || linktext.trim().startsWith("#")) && newLeaf !== "tab"
+                    ) || linktext.trim().startsWith("#")) && newLeaf !== "tab") && !plugin.ctrl
                 ) {
                     Console.debug("to same page") // ctrl or not
                     return old.apply(this, [

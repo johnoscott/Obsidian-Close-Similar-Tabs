@@ -2,7 +2,7 @@ import { Platform } from "obsidian";
 
 let DEBUG = "false";
 
-if (Platform.isDesktopApp){
+if (Platform.isDesktopApp) {
     require('dotenv').config();
     DEBUG = process.env.DEBUG ?? "true";
 }

@@ -1,6 +1,8 @@
 import esbuild from "esbuild";
 import process from "process";
 import builtins from "builtin-modules";
+import * as dotenv from 'dotenv';
+dotenv.config()
 
 const banner =
 	`/*
@@ -32,15 +34,15 @@ const context = await esbuild.context({
 		"@lezer/highlight",
 		"@lezer/lr",
 		...builtins],
-	define: {
-		'process.env.DEBUG': JSON.stringify(prod ? "false" : "true")
-	},
 	format: "cjs",
 	target: "es2018",
 	logLevel: "info",
 	sourcemap: prod ? false : "inline",
 	treeShaking: true,
 	outfile: "main.js",
+	define: {
+		'process.env.DEBUG': JSON.stringify(prod ? "false" : "true")
+	},
 });
 
 if (prod) {
