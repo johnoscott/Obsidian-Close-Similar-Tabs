@@ -1,1 +1,1 @@
-forgot a console.log
+fix links dataviewjs (the previous one was about link in dataview)
