@@ -30,11 +30,12 @@ export function openLinkWrapper(plugin: CST) {
                         sourcePath.split(".").slice(0, -1).join(".")
                     ) || linktext.trim().startsWith("#")) && newLeaf !== "tab") && !plugin.ctrl && OpenViewState === undefined
                 ) {
-                    Console.debug("to same page") // ctrl or not
+                    const text = !!newLeaf ? "newleaf true, not 'tab'":"to same page newleaf false"
+                    Console.debug("text", text)
                     return old.apply(this, [
                         linktext,
                         sourcePath,
-                        newLeaf = false,// don't open new tab
+                        newLeaf = !!newLeaf,// changed for URI 
                         OpenViewState,
                     ]);
                 } else { // to other page

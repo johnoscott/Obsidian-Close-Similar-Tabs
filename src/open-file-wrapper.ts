@@ -69,7 +69,8 @@ export function openFileWrapper(plugin: CST) {
                         }
                         else {// quick switch
                             Console.debug("quick switch or drag header or today note")
-                            if (plugin.getLeafPath(activeLeaf) !== target) await activateDetach(plugin, duplis, activeLeaf, 10)
+                            if (plugin.getLeafPath(activeLeaf) !== target) {
+                                await activateDetach(plugin, duplis, activeLeaf, 10)}
                             if (state?.eState) await removeEmpty(plugin, activeEl, 0)
                         }
                     } else { // today note no existing tab. quick switcher pinned tab
