@@ -1,1 +1,1 @@
-fix: links to same page
+fix: useless console.log
