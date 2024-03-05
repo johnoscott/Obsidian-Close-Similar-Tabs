@@ -26,10 +26,6 @@ export function openLinkWrapper(plugin: CST) {
                 let activeLeaf = plugin.getVisibleLeaf()
                 Console.debug("getVisibleLeaf", activeLeaf?.getDisplayText())
 
-                const firstPart = getFirstPartOfWikiLink(linktext);
-                console.log("firstPart", firstPart)
-
-
                 if ( // ok // to same page
                     ((path.basename(sourcePath, path.extname(sourcePath))===(getFirstPartOfWikiLink(linktext)) || linktext.trim().startsWith("#"))) && newLeaf !== "tab" && !plugin.ctrl && OpenViewState === undefined) {
                     const text = !!newLeaf ? "newleaf true, not 'tab'" : "to same page newleaf false"
