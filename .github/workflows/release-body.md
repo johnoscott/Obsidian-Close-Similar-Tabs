@@ -1,1 +1,1 @@
-URI new tab fixed
+fix: links to same page
