@@ -2,6 +2,7 @@ import { around } from "monkey-around";
 import CST from "./main";
 import { Workspace, WorkspaceLeaf } from "obsidian";
 import { Console } from "./Console";
+import * as path from "path";
 
 export function openLinkWrapper(plugin: CST) {
     const openLinkPatched = around(Workspace.prototype, {
@@ -25,12 +26,13 @@ export function openLinkWrapper(plugin: CST) {
                 let activeLeaf = plugin.getVisibleLeaf()
                 Console.debug("getVisibleLeaf", activeLeaf?.getDisplayText())
 
+                const firstPart = getFirstPartOfWikiLink(linktext);
+                console.log("firstPart", firstPart)
+
+
                 if ( // ok // to same page
-                    ((linktext.includes(
-                        sourcePath.split(".").slice(0, -1).join(".")
-                    ) || linktext.trim().startsWith("#")) && newLeaf !== "tab") && !plugin.ctrl && OpenViewState === undefined
-                ) {
-                    const text = !!newLeaf ? "newleaf true, not 'tab'":"to same page newleaf false"
+                    ((path.basename(sourcePath, path.extname(sourcePath))===(getFirstPartOfWikiLink(linktext)) || linktext.trim().startsWith("#"))) && newLeaf !== "tab" && !plugin.ctrl && OpenViewState === undefined) {
+                    const text = !!newLeaf ? "newleaf true, not 'tab'" : "to same page newleaf false"
                     Console.debug("text", text)
                     return old.apply(this, [
                         linktext,
@@ -151,3 +153,14 @@ function getDupli(plugin: CST, linktext: string, sourcePath: string, activeLeaf:
     const dupli = leaves.filter(l => { return plugin.getLeafPath(l) === targetFile?.path })[0]
     return { dupli, linkPart }
 }
+
+// I used path
+// function extractFileName(filePath: string): string {
+//     const fileNameWithExtension = filePath.split('/').pop();
+//     if (fileNameWithExtension) {
+//         const fileName = fileNameWithExtension.split('.')[0];
+//         return fileName;
+//     } else {
+//         return '';
+//     }
+// }
